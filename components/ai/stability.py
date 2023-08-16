@@ -3,7 +3,7 @@ import base64
 import requests
 from dotenv import load_dotenv, find_dotenv
 
-def generate_text_to_image():
+def generate_text_to_image(prompt):
     engine_id = "stable-diffusion-xl-1024-v1-0"
     api_host = os.getenv('API_HOST', 'https://api.stability.ai')
     url = f"{api_host}/v1/user/balance"
@@ -23,7 +23,7 @@ def generate_text_to_image():
         json={
             "text_prompts": [
                 {
-                    "text": "An image of an anime character, or an anime scenery with anime characters"
+                    "text": prompt
                 }
             ],
             "cfg_scale": 7,

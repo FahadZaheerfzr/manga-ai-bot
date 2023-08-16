@@ -1,6 +1,6 @@
 from telebot import TeleBot
 from telebot import types
-from database import DB
+from components.database import DB
 
 def register(message: types.Message, bot: TeleBot):
     try:

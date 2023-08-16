@@ -1,5 +1,5 @@
 from telebot import types
-from database import DB
+from components.database import DB
 
 def settings(message, bot):
     chat_id = message.chat.id

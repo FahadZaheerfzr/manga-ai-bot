@@ -7,3 +7,5 @@ requests==2.31.0
 telebot==0.0.5
 urllib3==2.0.4
 pymongo==4.4.1
+dnspython==2.4.2
+Pillow==10.0.0

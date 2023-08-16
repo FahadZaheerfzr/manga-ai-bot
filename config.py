@@ -4,3 +4,4 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv())  # read local .env file
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+BACKEND_URL = os.getenv("BACKEND_URL")

@@ -17,7 +17,6 @@ def generate(message,bot):
     """ 
     prompt = message.text.split(" ", 1)[1]
     print(prompt)
-    bot.send_message(message.from_user.id, "Generating image...")
     params = {
         "prompt": prompt,
         "name":message.from_user.username,
@@ -25,7 +24,7 @@ def generate(message,bot):
         "group_id": message.chat.id,
     }
     image_file_path = "v1_txt2img_0.png"
-    #generate_text_to_image(prompt)
+    generate_text_to_image(prompt)
     with open(image_file_path, "rb") as image_file:
         files = {
             "image_file": (image_file_path, image_file, "image/png")
@@ -35,5 +34,4 @@ def generate(message,bot):
     watermark = Image.open("image/watermark.png")
     image.paste(watermark, (0, 0), watermark)
     image.save(image_file_path)
-    bot.send_message(message.from_user.id, "Image generated! Check your DMs!")
-    bot.send_photo(message.from_user.id, open('v1_txt2img_0.png', 'rb'))
+    bot.send_photo(message.chat.id, open('v1_txt2img_0.png', 'rb'))

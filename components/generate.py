@@ -57,12 +57,13 @@ def generate(message,bot):
     image.paste(watermark, (0, 0), watermark)
     image.save(image_file_path)
     ads_string = """"""
-    for ad in group["common_ads"]:
-        ads_string += f'<a href="{ad["link"]}">{ad["name"]}</a> | '
-    
     sponsored_ads = """"""
-    for ad in group["sponsored_ads"]:
-        sponsored_ads += f'<a href="{ad["link"]}">{ad["name"]}</a> | '
+    if group is not None:
+        for ad in group["common_ads"]:
+            ads_string += f'<a href="{ad["link"]}">{ad["name"]}</a> | '
+    
+        for ad in group["sponsored_ads"]:
+            sponsored_ads += f'<a href="{ad["link"]}">{ad["name"]}</a> | '
     
     caption = f"""
 Ad: {ads_string} \n

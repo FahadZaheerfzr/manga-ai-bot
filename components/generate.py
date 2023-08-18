@@ -27,7 +27,7 @@ def generate(message,bot):
     print(image_count)
     time_left = datetime.datetime.combine(datetime.date.today(), datetime.time.max) - datetime.datetime.now()
     if image_count >= 3:
-        bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + str(time_left.split(".")[0]))
+        bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + str(time_left).split(".")[0])
         return
     prompt = message.text.split(" ", 1)[1]
     print(prompt)

@@ -32,8 +32,12 @@ def generate(message,bot):
     if image_count >= 3:
         bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + (str(time_left).split(".")[0]).split(":")[0] + " hours and " + (str(time_left).split(".")[0]).split(":")[1] + " minutes.")
         return
-    prompt = message.text.split(" ", 1)[1]
-    print(prompt)
+    try:
+        prompt = message.text.split(" ", 1)[1]
+        print(prompt)
+    except:
+        bot.reply_to(message, "The structure of the command is incorrect. Please try /generate <prompt>.")
+        return
     params = {
         "prompt": prompt,
         "name":message.from_user.username,

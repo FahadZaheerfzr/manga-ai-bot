@@ -11,7 +11,7 @@ mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object wit
 
 mint_bot.register_message_handler(start, pass_bot=True, commands=['start'])
 mint_bot.register_message_handler(register, pass_bot=True, commands=['register'])
-mint_bot.register_message_handler(generate, pass_bot=True, commands=['generate'])
+mint_bot.register_message_handler(generate, pass_bot=True, commands=['img'])
 mint_bot.register_message_handler(settings, pass_bot=True, commands=['settings'])
 
 mint_bot.register_callback_query_handler(handleSelectedCommunity, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedCommunity|'))

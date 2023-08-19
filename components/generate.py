@@ -36,7 +36,7 @@ def generate(message,bot):
         prompt = message.text.split(" ", 1)[1]
         print(prompt)
     except:
-        bot.reply_to(message, "The structure of the command is incorrect. Please try /generate <prompt>.")
+        bot.reply_to(message, "The structure of the command is incorrect. Please try /img <prompt>.")
         return
     params = {
         "prompt": prompt,

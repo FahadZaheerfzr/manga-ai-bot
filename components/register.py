@@ -8,7 +8,7 @@ def register(message: types.Message, bot: TeleBot):
             "_id": message.chat.id,
             "owner": message.from_user.id,
             "name": message.chat.title,
-            "common_ads": [],
+            "common_ads": [{"name":"Roburna Blockchain", "link":"https://t.me/Roburna"}],
             "sponsored_ads": [],
         })
         bot.reply_to(message, "Group registered, use the command /settings in my dm to manage your mintbot")

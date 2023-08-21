@@ -34,7 +34,7 @@ def generate(message,bot):
     # calculate time left until the end of the day
     print(image_count)
     time_left = datetime.datetime.combine(datetime.date.today(), datetime.time.max) - datetime.datetime.now()
-    if image_count >= 5:
+    if image_count >= 3:
         bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + (str(time_left).split(".")[0]).split(":")[0] + " hours and " + (str(time_left).split(".")[0]).split(":")[1] + " minutes.")
         return
     try:

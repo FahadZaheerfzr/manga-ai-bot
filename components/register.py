@@ -3,6 +3,9 @@ from telebot import types
 from components.database import DB
 
 def register(message: types.Message, bot: TeleBot):
+    if message.chat.type == "private":
+        bot.reply_to(message, "Please use this command in a group.")
+        return
     try:
         DB['group'].insert_one({
             "_id": message.chat.id,

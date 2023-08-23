@@ -4,11 +4,12 @@ from components.start import start #import the start function from the start.py 
 from components.generate import generate #import the generate function from the generate.py file
 from components.register import register #import the register function from the register.py file
 from components.database import DB
+from components.join_group import join_group
 from components.settings import settings, handleSelectedCommunity, removeCommunity, cancel
 mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object with the bot token we have
 
 
-
+mint_bot.register_message_handler(join_group, content_types=["new_chat_members"], pass_bot=True)  
 mint_bot.register_message_handler(start, pass_bot=True, commands=['start'])
 mint_bot.register_message_handler(register, pass_bot=True, commands=['register'])
 mint_bot.register_message_handler(generate, pass_bot=True, commands=['img'])

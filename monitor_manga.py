@@ -14,7 +14,7 @@ def run_script():
         
         # Wait for the script to finish
         script_process.wait()
-        
+        print(script_process.returncode)
         # If the script exited normally (return code 0), break the loop
         if script_process.returncode == 0:
             break

@@ -9,7 +9,7 @@ from components.settings import settings, handleSelectedCommunity, removeCommuni
 mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object with the bot token we have
 
 
-mint_bot.register_message_handler(join_group, content_types=["new_chat_members"], pass_bot=True)  
+#mint_bot.register_message_handler(join_group, content_types=["new_chat_members"], pass_bot=True)  
 mint_bot.register_message_handler(start, pass_bot=True, commands=['start'])
 mint_bot.register_message_handler(register, pass_bot=True, commands=['register'])
 mint_bot.register_message_handler(generate, pass_bot=True, commands=['img'])

@@ -23,7 +23,6 @@ def generate(message,bot):
         image_generation_logger=setup_logger("image_generation")
         image_generation_logger.info(f"User {message.from_user.id} requested to generate an image.")
         group = DB['group'].find_one({"_id": message.chat.id})
-        print(group)
         image_generation_logger.info(f"User {message.from_user.id} is in group {message.chat.id}.")
         image_responses = requests.get(BACKEND_URL+"/image/user/"+str(message.from_user.id))
         image_generation_logger.info(f"User {message.from_user.id} has generated {len(image_responses.json())} images today.")
@@ -33,7 +32,6 @@ def generate(message,bot):
             if image["created_at"].split(" ")[0] == str(datetime.date.today()):
                 image_count += 1
         # calculate time left until the end of the day
-        print(image_count)
         time_left = datetime.datetime.combine(datetime.date.today(), datetime.time.max) - datetime.datetime.now()
         if image_count >= 3:
             bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + (str(time_left).split(".")[0]).split(":")[0] + " hours and " + (str(time_left).split(".")[0]).split(":")[1] + " minutes.")

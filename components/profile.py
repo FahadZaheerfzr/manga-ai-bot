@@ -1,6 +1,7 @@
 from components.database import DB
 from telebot import types
-from config import BACKEND_URL
+
+
 def profile(message, bot):
     """
     This function responds to the /profile command and displays
@@ -54,7 +55,8 @@ def handleSelectedGroup(message: types.CallbackQuery,bot):
             formatted_text = f"""
 <b>Community:</b> {DB['group'].find_one({"_id": int(selectedGroup)})['name']}
 <b>Art Points:</b> {user_points}
-<b>Referral Link:</b> {BACKEND_URL}/referral/{message.from_user.id}/{chat_details.invite_link.split("/")[-1]}
+<b>Referral Code:</b> {message.from_user.id} \n
+Send this invite {chat_details.invite_link} to your friends along with your referral code to earn more points.
             """
         else:
             formatted_text = f"""

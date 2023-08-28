@@ -1,6 +1,6 @@
 from components.database import DB
 from telebot import types
-
+from config import BACKEND_URL
 def profile(message, bot):
     """
     This function responds to the /profile command and displays
@@ -14,10 +14,16 @@ def profile(message, bot):
     user_groups = []
     try:
         for group in groups:
-            result = bot.get_chat_member(group['_id'], message.from_user.id)
-            if result.status != "left":
-                user_groups.append(group)
+            try:
+                result = bot.get_chat_member(group['_id'], message.from_user.id)
+                if result.status != "left":
+                    user_groups.append(group)
+            except Exception as e:
+                print(e)
+                continue
         
+        print(user_groups)
+
         if len(user_groups) == 0:
             bot.reply_to(message, "You are not a member of any community.")
             return
@@ -48,7 +54,7 @@ def handleSelectedGroup(message: types.CallbackQuery,bot):
             formatted_text = f"""
 <b>Community:</b> {DB['group'].find_one({"_id": int(selectedGroup)})['name']}
 <b>Art Points:</b> {user_points}
-<b>Referral Link:</b> https://api.mangaai.org/referral/{message.from_user.id}/{chat_details.invite_link}
+<b>Referral Link:</b> {BACKEND_URL}/referral/{message.from_user.id}/{chat_details.invite_link.split("/")[-1]}
             """
         else:
             formatted_text = f"""

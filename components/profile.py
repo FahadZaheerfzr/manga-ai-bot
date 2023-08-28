@@ -47,6 +47,8 @@ def handleSelectedGroup(message: types.CallbackQuery,bot):
     try:
         # get all the points of the user in the selected group
         images = DB['images'].find({"user_id": str(message.from_user.id), "group_id": selectedGroup})
+        referrals = DB['referral'].find({"user_id": str(message.from_user.id), "chat_id": selectedGroup})
+        referal_points = len(referrals)
         user_points = 0
         for image in images:
             user_points += image['points']
@@ -55,6 +57,7 @@ def handleSelectedGroup(message: types.CallbackQuery,bot):
             formatted_text = f"""
 <b>Community:</b> {DB['group'].find_one({"_id": int(selectedGroup)})['name']}
 <b>Art Points:</b> {user_points}
+<b>Referral Points:</b> {referal_points}
 <b>Referral Code:</b> {message.from_user.id} \n
 Send this invite {chat_details.invite_link} to your friends along with your referral code to earn more points.
             """

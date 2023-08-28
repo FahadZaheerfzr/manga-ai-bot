@@ -23,7 +23,6 @@ def profile(message, bot):
                 print(e)
                 continue
         
-        print(user_groups)
 
         if len(user_groups) == 0:
             bot.reply_to(message, "You are not a member of any community.")
@@ -47,8 +46,10 @@ def handleSelectedGroup(message: types.CallbackQuery,bot):
     try:
         # get all the points of the user in the selected group
         images = DB['images'].find({"user_id": str(message.from_user.id), "group_id": selectedGroup})
-        referrals = DB['referral'].find({"user_id": str(message.from_user.id), "chat_id": selectedGroup})
-        referal_points = len(referrals)
+        print(message.from_user.id)
+        print(selectedGroup)
+        referrals = DB['referral'].count_documents({"referral_id": str(message.from_user.id), "chat_id": int(selectedGroup)})
+        referal_points = referrals
         user_points = 0
         for image in images:
             user_points += image['points']

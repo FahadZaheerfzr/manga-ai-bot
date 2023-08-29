@@ -1,3 +1,4 @@
+from components.database import DB
 
 def join_group(update, bot):
     """
@@ -13,9 +14,23 @@ def join_group(update, bot):
     # Get the group ID
     try:
         if update.invite_link is not None:
-            bot.send_message(update.chat.id, "Welcome to the group! Looks like you were invited by someone. Please enter the referral code of the person who invited you using <b>/referral: {code}</b> to help them earn more points.", parse_mode="HTML")
+            user_id = update.invite_link.name
+            print(update)
+            # Check if the user has already referred
+            referral = DB['referral'].find_one({"referral_id": user_id})
+            if referral is None:
+                # Confirm if the sender is the member of the group
+                try:
+                    result = bot.get_chat_member(update.chat.id, update.from_user.id)
+                    if result.status != "left":
+                        # Add the referral
+                        DB['referral'].insert_one({"referral_id": user_id, "user_id": update.from_user.id})
+                except Exception as e:
+                    print(e)
+                    pass
     except Exception as e:
         print(e)
+        pass
 
 
 

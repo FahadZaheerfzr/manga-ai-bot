@@ -7,13 +7,11 @@ from components.database import DB
 from components.profile import profile, handleSelectedGroup
 from components.join_group import join_group
 from components.settings import settings, handleSelectedCommunity, removeCommunity, cancel
-from components.referral import referral
 mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object with the bot token we have
 
 #mint_bot.register_message_handler(join_group, content_types=["new_chat_members"], pass_bot=True)  
 mint_bot.register_message_handler(start, pass_bot=True, commands=['start'])
 mint_bot.register_message_handler(register, pass_bot=True, commands=['register'])
-mint_bot.register_message_handler(referral, pass_bot=True, commands=['referral'])
 mint_bot.register_message_handler(generate_image, pass_bot=True, commands=['img'])
 mint_bot.register_message_handler(generate, pass_bot=True, commands=['anime'])
 mint_bot.register_message_handler(settings, pass_bot=True, commands=['settings'])

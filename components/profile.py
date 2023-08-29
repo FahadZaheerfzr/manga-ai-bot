@@ -40,9 +40,9 @@ def profile(message, bot):
 
 def handleSelectedGroup(message: types.CallbackQuery,bot):
     data = message.data.split("|")
+    invite_link = bot.create_chat_invite_link(-879651533, name=message.from_user.id)
 
     selectedGroup = data[1]
-
     try:
         # get all the points of the user in the selected group
         images = DB['images'].find({"user_id": str(message.from_user.id), "group_id": selectedGroup})
@@ -57,10 +57,9 @@ def handleSelectedGroup(message: types.CallbackQuery,bot):
         if chat_details.invite_link is not None:
             formatted_text = f"""
 <b>Community:</b> {DB['group'].find_one({"_id": int(selectedGroup)})['name']}
-<b>Art Points:</b> {user_points}
-<b>Referral Points:</b> {referal_points}
-<b>Referral Code:</b> {message.from_user.id} \n
-Send this invite {chat_details.invite_link} to your friends along with your referral code to earn more points.
+<b>Art Points for the selected community:</b> {user_points}
+<b>Referral Points on Manga AI group:</b> {referal_points}
+Send this invite {invite_link.invite_link} to your friends to earn more points.
             """
         else:
             formatted_text = f"""

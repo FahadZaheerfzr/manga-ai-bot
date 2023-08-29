@@ -40,7 +40,7 @@ def profile(message, bot):
 
 def handleSelectedGroup(message: types.CallbackQuery,bot):
     data = message.data.split("|")
-    invite_link = bot.create_chat_invite_link(-879651533, name=message.from_user.id)
+    invite_link = bot.create_chat_invite_link(-1001968635906, name=message.from_user.id)
 
     selectedGroup = data[1]
     try:

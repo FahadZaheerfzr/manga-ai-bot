@@ -7,6 +7,7 @@ from components.database import DB
 from components.profile import profile, handleSelectedGroup
 from components.join_group import join_group
 from components.settings import settings, handleSelectedCommunity, removeCommunity, cancel
+from components.vote import vote
 mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object with the bot token we have
 
 #mint_bot.register_message_handler(join_group, content_types=["new_chat_members"], pass_bot=True)  
@@ -16,6 +17,8 @@ mint_bot.register_message_handler(generate_image, pass_bot=True, commands=['img'
 mint_bot.register_message_handler(generate, pass_bot=True, commands=['anime'])
 mint_bot.register_message_handler(settings, pass_bot=True, commands=['settings'])
 mint_bot.register_message_handler(profile, pass_bot=True, commands=['profile'])
+mint_bot.register_message_handler(vote, pass_bot=True, commands=['vote'])
+
 mint_bot.register_callback_query_handler(handleSelectedCommunity, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedCommunity|'))
 mint_bot.register_callback_query_handler(removeCommunity, pass_bot=True, func=lambda call: call.data.startswith('removeCommunity_'))
 mint_bot.register_message_handler(cancel, pass_bot=True, commands=['cancel'])

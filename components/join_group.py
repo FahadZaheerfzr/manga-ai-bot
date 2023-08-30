@@ -17,7 +17,8 @@ def join_group(update, bot):
             user_id = update.invite_link.name
             print(update)
             # Check if the user has already referred
-            referral = DB['referral'].find_one({"referral_id": user_id})
+            referral = DB['referral'].find_one({"referral_id": user_id, user_id:update.from_user.id })
+            print(referral)
             if referral is None:
                 # Confirm if the sender is the member of the group
                 try:

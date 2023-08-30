@@ -9,6 +9,8 @@ user_data_dict = {}
 
 # Command handler for '/vote'
 def vote(message,bot):
+    if message.chat.type != "private":
+        return
     # Create a unique identifier for this vote process
     vote_process_id = f"vote_{message.chat.id}"
     
@@ -38,6 +40,10 @@ def handle_forwarded_image(message, vote_process_id, bot):
     group = DB['group'].find_one({"_id": groupID})
     print (group)
 
+    if group is None:
+        bot.reply_to(message, "This image wasn't part of any group")
+        return
+    
     if group["voting_system"] == False:
         bot.reply_to(message, "Voting is not enabled for this group.")
         return

@@ -19,6 +19,9 @@ mint_bot.register_message_handler(settings, pass_bot=True, commands=['settings']
 mint_bot.register_message_handler(profile, pass_bot=True, commands=['profile'])
 mint_bot.register_message_handler(vote, pass_bot=True, commands=['vote'])
 
+
+# also run vote with the callback query
+mint_bot.register_callback_query_handler(vote, pass_bot=True, func=lambda call: call.data.startswith('vote_'))
 mint_bot.register_callback_query_handler(handleSelectedCommunity, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedCommunity|'))
 mint_bot.register_callback_query_handler(removeCommunity, pass_bot=True, func=lambda call: call.data.startswith('removeCommunity_'))
 mint_bot.register_message_handler(cancel, pass_bot=True, commands=['cancel'])

@@ -8,19 +8,21 @@ from config import BACKEND_URL
 user_data_dict = {}
 
 # Command handler for '/vote'
-def vote(message,bot):
+def vote(message: types.CallbackQuery,bot):
     # Create a unique identifier for this vote process
-    vote_process_id = f"vote_{message.chat.id}"
+    # print (message.message.caption)
+    vote_process_id = f"vote_{message.message.chat.id}"
     
     # Initialize user data for the vote process
     user_data_dict[vote_process_id] = {}
     
     # Reply to the user and instruct them to forward an image to dm
-    bot.send_message(message.from_user.id, "Please forward the image you want to vote for to me.")
-    bot.register_next_step_handler(message, handle_forwarded_image, vote_process_id, bot)
+    # bot.send_message(message.from_user.id, "Please forward the image you want to vote for to me.")
+    handle_forwarded_image(message.message,message.from_user.id, vote_process_id, bot)
 
 
-def handle_forwarded_image(message, vote_process_id, bot):
+def handle_forwarded_image(message,fromUserId, vote_process_id, bot):
+    print (message,"the mssaf")
     # Extract the image ID from the forwarded message
     #print the text after Image ID: in the caption
     image_id = message.caption.split("Image ID: ")[1]
@@ -42,20 +44,20 @@ def handle_forwarded_image(message, vote_process_id, bot):
         bot.reply_to(message, "Voting is not enabled for this group.")
         return
     
-    if message.from_user.id in image["votedBy"]:
+    if fromUserId in image["votedBy"]:
         bot.reply_to(message, "You have already voted for this image.")
         return
     
     # Ask the user to provide the Twitter link
-    bot.reply_to(message, "Great! Now, please send the Twitter link of the post associated with this image.")
+    bot.send_message(fromUserId, "Great! Now, please send the Twitter link of the post associated with this image.")
     
     # Save the image ID for later use
     user_data_dict[vote_process_id]['current_image_id'] = image_id
     
     # Set the next step to handle the Twitter link
-    bot.register_next_step_handler(message, handle_twitter_link, vote_process_id, bot)
+    bot.register_next_step_handler(message, handle_twitter_link, vote_process_id, bot,fromUserId)
 
-def handle_twitter_link(message, vote_process_id, bot):
+def handle_twitter_link(message, vote_process_id, bot,fromUserId):
     # Extract the Twitter link from the user's message
     twitter_link = message.text
     
@@ -64,7 +66,7 @@ def handle_twitter_link(message, vote_process_id, bot):
     image_id = user_data['current_image_id']
     
     # Save the vote in the backend (you will need to implement this)
-    success = add_vote_to_backend(image_id, twitter_link,message.from_user.id)
+    success = add_vote_to_backend(image_id, twitter_link,fromUserId)
     
     if success:
         bot.reply_to(message, "Thank you for your vote! Your vote has been recorded.")

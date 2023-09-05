@@ -19,6 +19,25 @@ def join_group(update, bot):
             # Check if the user has already referred
             referral = DB['referral'].find_one({"referral_id": user_id, user_id:update.from_user.id })
             print(referral)
+            # check if update.invite_link.invite_link is in the database
+            invite_link = DB['invite_link'].find_one({"invite_link": update.invite_link.invite_link})
+            # now check if the user has already used the invite link
+            if invite_link is not None:
+                if update.from_user.id in invite_link["used"]:
+                    return
+                else:
+                    DB['invite_link'].update_one(
+                        {
+                            "invite_link": update.invite_link.invite_link
+                        },
+                        {
+                            "$push": {
+                                "used": update.from_user.id
+                            },
+                        },
+                        upsert=True
+                    )
+            
             if referral is None:
                 # Confirm if the sender is the member of the group
                 try:

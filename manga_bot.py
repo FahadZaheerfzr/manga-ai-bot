@@ -17,7 +17,7 @@ mint_bot.register_message_handler(generate_image, pass_bot=True, commands=['img'
 mint_bot.register_message_handler(generate, pass_bot=True, commands=['anime'])
 mint_bot.register_message_handler(settings, pass_bot=True, commands=['settings'])
 mint_bot.register_message_handler(profile, pass_bot=True, commands=['profile'])
-mint_bot.register_message_handler(vote, pass_bot=True, commands=['vote'])
+# mint_bot.register_message_handler(vote, pass_bot=True, commands=['vote'])
 
 
 # also run vote with the callback query

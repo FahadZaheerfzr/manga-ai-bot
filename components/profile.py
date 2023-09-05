@@ -40,8 +40,27 @@ def profile(message, bot):
 
 def handleSelectedGroup(message: types.CallbackQuery,bot):
     data = message.data.split("|")
-    invite_link = bot.create_chat_invite_link(-1001968635906, name=message.from_user.id)
-
+    # get the invite link for the group and user from the database
+    invite_link = DB['invite_link'].find_one({"user_id": str(message.from_user.id), "group_id": -987008160})
+    if invite_link is None:
+        invite_link = bot.create_chat_invite_link(-987008160, name=message.from_user.id)
+        invite_link=invite_link.invite_link
+        # storw the invite link according to the user id and group id
+        DB['invite_link'].update_one(
+            {
+                "user_id": str(message.from_user.id),
+                "group_id": -987008160
+            },
+            {
+                "$set": {
+                    "invite_link": invite_link,
+                    "used": []  # Initialize the "used" list as empty
+                },
+            },
+            upsert=True
+        )    
+    else:
+        invite_link = invite_link['invite_link']
     selectedGroup = data[1]
     try:
         # get all the points of the user in the selected group
@@ -59,7 +78,7 @@ def handleSelectedGroup(message: types.CallbackQuery,bot):
 <b>Community:</b> {DB['group'].find_one({"_id": int(selectedGroup)})['name']}
 <b>Art Points for the selected community:</b> {user_points}
 <b>Referral Points on Manga AI group:</b> {referal_points}
-Send this invite {invite_link.invite_link} to your friends to earn more points.
+Send this invite {invite_link} to your friends to earn more points.
             """
         else:
             formatted_text = f"""

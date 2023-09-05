@@ -4,7 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv())  # read local .env file
 
 ENVIRONMENT = os.getenv("ENVIRONMENT")
-print(ENVIRONMENT,"AAA")
+print(ENVIRONMENT)
 
 if ENVIRONMENT == "DEVELOPMENT":
   BOT_TOKEN = os.getenv("TEST_BOT_TOKEN")

@@ -40,6 +40,10 @@ def handle_forwarded_image(message,fromUserId, vote_process_id, bot):
     group = DB['group'].find_one({"_id": groupID})
     print (group)
 
+    if group is None:
+        bot.reply_to(message, "This image wasn't part of any group")
+        return
+    
     if group["voting_system"] == False:
         bot.reply_to(message, "Voting is not enabled for this group.")
         return

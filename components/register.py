@@ -14,6 +14,7 @@ def register(message: types.Message, bot: TeleBot):
             "common_ads": [{"name":"Roburna Blockchain", "link":"https://t.me/Roburna"}],
             "sponsored_ads": [],
             "point_system": False,
+            "voting_system": False
         })
         bot.reply_to(message, "Group registered, use the command /settings in my dm to manage your mintbot")
     except Exception as e:

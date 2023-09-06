@@ -41,7 +41,7 @@ def profile(message, bot):
 def handleSelectedGroup(message: types.CallbackQuery,bot):
     data = message.data.split("|")
     # get the invite link for the group and user from the database
-    invite_link = DB['invite_link'].find_one({"user_id": str(message.from_user.id), "group_id": -987008160})
+    invite_link = DB['invite_link'].find_one({"user_id": str(message.from_user.id), "group_id": -1001968635906})
     if invite_link is None:
         invite_link = bot.create_chat_invite_link(-1001968635906, name=message.from_user.id)
         invite_link=invite_link.invite_link

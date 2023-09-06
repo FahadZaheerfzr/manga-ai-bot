@@ -94,7 +94,28 @@ Ad: {ads_string} \n
 Sponsored Ad: {sponsored_ads}\n
 &gt; <a href='https://t.me/mangaaiofficial'>Join MangaAI</a> | <a href='https://mangaai.org/'>Website</a> &lt;
         """
-        bot.send_photo(message.chat.id, photo=open('v1_txt2img_0.png', 'rb'), caption=caption, parse_mode='HTML')
+        reply2_keyboard = [
+            [types.InlineKeyboardButton("Vote", callback_data="vote_")],
+        ]
+
+# Create the inline keyboard markup
+        markup1 = types.InlineKeyboardMarkup(reply2_keyboard)
+
+        #check db to check if voting is enabled in group
+        group = DB['group'].find_one({"_id": message.chat.id})
+        if group is not None:
+            if group["voting_system"] is True:
+                bot.send_photo(
+                    message.chat.id,
+                    photo=open('v1_txt2img_0.png', 'rb'),
+                    caption=caption,
+                    parse_mode='HTML',
+                    reply_markup=markup1
+                )
+                return
+            else:
+                bot.send_photo(message.chat.id, photo=open('v1_txt2img_0.png', 'rb'), caption=caption, parse_mode='HTML')
+                return
     except Exception as e:
         image_generation_logger.error(f"User {message.from_user.id} encountered an error while generating an image, {e}")
         bot.reply_to(message, "An error occurred while generating the image. Please try again.")
@@ -194,14 +215,21 @@ Sponsored Ad: {sponsored_ads}\n
 # Create the inline keyboard markup
         markup1 = types.InlineKeyboardMarkup(reply2_keyboard)
 
-        # Send the photo with the caption and inline keyboard
-        bot.send_photo(
-            message.chat.id,
-            photo=open('v1_txt2img_0.png', 'rb'),
-            caption=caption,
-            parse_mode='HTML',
-            reply_markup=markup1
-        )
+        #check db to check if voting is enabled in group
+        group = DB['group'].find_one({"_id": message.chat.id})
+        if group is not None:
+            if group["voting_system"] is True:
+                bot.send_photo(
+                    message.chat.id,
+                    photo=open('v1_txt2img_0.png', 'rb'),
+                    caption=caption,
+                    parse_mode='HTML',
+                    reply_markup=markup1
+                )
+                return
+            else:
+                bot.send_photo(message.chat.id, photo=open('v1_txt2img_0.png', 'rb'), caption=caption, parse_mode='HTML')
+                return
 
 
 

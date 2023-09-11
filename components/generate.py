@@ -230,6 +230,9 @@ Sponsored Ad: {sponsored_ads}\n
             else:
                 bot.send_photo(message.chat.id, photo=open('v1_txt2img_0.png', 'rb'), caption=caption, parse_mode='HTML')
                 return
+        else:
+            bot.send_photo(message.chat.id, photo=open('v1_txt2img_0.png', 'rb'), caption=caption, parse_mode='HTML')
+            return
 
 
 

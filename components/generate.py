@@ -116,6 +116,9 @@ Sponsored Ad: {sponsored_ads}\n
             else:
                 bot.send_photo(message.chat.id, photo=open('v1_txt2img_0.png', 'rb'), caption=caption, parse_mode='HTML')
                 return
+        else:
+            bot.send_photo(message.chat.id, photo=open('v1_txt2img_0.png', 'rb'), caption=caption, parse_mode='HTML')
+            return
     except Exception as e:
         image_generation_logger.error(f"User {message.from_user.id} encountered an error while generating an image, {e}")
         bot.reply_to(message, "An error occurred while generating the image. Please try again.")

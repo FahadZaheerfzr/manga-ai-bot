@@ -53,7 +53,7 @@ def handle_forwarded_image(message,fromUserId, vote_process_id, bot):
         return
     
     # Ask the user to provide the Twitter link
-    bot.send_message(fromUserId, "Great! Now, please send the Twitter link of the post associated with this image.")
+    bot.reply_to(message, "Great! Now, please send the Twitter link of the post associated with this image.")
     
     # Save the image ID for later use
     user_data_dict[vote_process_id]['current_image_id'] = image_id

@@ -68,7 +68,7 @@ def handleSelectedGroup(message: types.CallbackQuery,bot):
         print(message.from_user.id)
         print(selectedGroup)
         referrals = DB['referral'].count_documents({"referral_id": str(message.from_user.id)})
-        referal_points = referrals
+        referal_points = referrals * 10
         user_points = 0
         for image in images:
             user_points += image['points']

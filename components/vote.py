@@ -66,11 +66,13 @@ def handle_forwarded_image(message,fromUserId, vote_process_id, bot):
 def handle_twitter_link(message, vote_process_id, bot,fromUserId):
     # Extract the Twitter link from the user's message
     twitter_link = message.text
+        
     # validate link
     if message.from_user.id != vote_initiators.get(vote_process_id):
-        bot.reply_to(message, "Sorry, only the user who initiated this vote can provide the Twitter link.")
+        #bot.reply_to(message, "Sorry, only the user who initiated this vote can provide the Twitter link.")
+        bot.register_next_step_handler(message, handle_twitter_link, vote_process_id, bot,fromUserId)
         return
-    
+        
     if twitter_link.startswith("https://twitter.com/") == False:
         bot.reply_to(message, "Sorry, that doesn't look like a Twitter link. Please try again.")
         return

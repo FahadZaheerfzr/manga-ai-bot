@@ -33,7 +33,7 @@ def generate(message,bot):
                 image_count += 1
         # calculate time left until the end of the day
         time_left = datetime.datetime.combine(datetime.date.today(), datetime.time.max) - datetime.datetime.now()
-        if image_count >= 3:
+        if image_count >= 10:
             bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + (str(time_left).split(".")[0]).split(":")[0] + " hours and " + (str(time_left).split(".")[0]).split(":")[1] + " minutes.")
             return
         try:
@@ -149,7 +149,7 @@ def generate_image(message,bot):
                 image_count += 1
         # calculate time left until the end of the day
         time_left = datetime.datetime.combine(datetime.date.today(), datetime.time.max) - datetime.datetime.now()
-        if image_count >= 3:
+        if image_count >= 20:
             bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + (str(time_left).split(".")[0]).split(":")[0] + " hours and " + (str(time_left).split(".")[0]).split(":")[1] + " minutes.")
             return
         try:
@@ -240,6 +240,7 @@ Sponsored Ad: {sponsored_ads}\n
 
 
     except Exception as e:
+        print(e)
         image_generation_logger.error(f"User {message.from_user.id} encountered an error while generating an image, {e}")
         bot.reply_to(message, "An error occurred while generating the image. Please try again.")
         return

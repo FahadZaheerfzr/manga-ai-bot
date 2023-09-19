@@ -7,7 +7,6 @@ from config import BACKEND_URL
 # Dictionary to store user data temporarily
 user_data_dict = {}
 vote_initiators = {}
-
 # Command handler for '/vote'
 def vote(message: types.CallbackQuery,bot):
     # Create a unique identifier for this vote process
@@ -17,13 +16,15 @@ def vote(message: types.CallbackQuery,bot):
     # Initialize user data for the vote process
     user_data_dict[vote_process_id] = {}
     vote_initiators[vote_process_id] = message.from_user.id
-
+    originalMessage = message.message
     # Reply to the user and instruct them to forward an image to dm
-    # bot.send_message(message.from_user.id, "Please forward the image you want to vote for to me.")
-    handle_forwarded_image(message.message,message.from_user.id, vote_process_id, bot)
+    bot.send_message(message.from_user.id, "Please forward the image you want to vote for to me.")
+    print("vote")
+    handle_forwarded_image(message.message,message.from_user.id, vote_process_id, bot,originalMessage)
+    # bot.register_next_step_handler(message.message, handle_forwarded_image, message.from_user.id, vote_process_id, bot,originalMessage)
 
 
-def handle_forwarded_image(message,fromUserId, vote_process_id, bot):
+def handle_forwarded_image(message,fromUserId, vote_process_id, bot,originalMessage):
     print (message,"the mssaf")
     # Extract the image ID from the forwarded message
     #print the text after Image ID: in the caption
@@ -55,26 +56,28 @@ def handle_forwarded_image(message,fromUserId, vote_process_id, bot):
         return
     
     # Ask the user to provide the Twitter link
-    bot.reply_to(message, "Great! Now, please send the Twitter link of the post associated with this image.")
-    
+    # bot.reply_to(message, "Great! Now, please send the Twitter link of the post associated with this image.")
+    bot.send_message(fromUserId, "Great! Now, please send the Twitter link of the post associated with this image.")
     # Save the image ID for later use
     user_data_dict[vote_process_id]['current_image_id'] = image_id
     
     # Set the next step to handle the Twitter link if the same user sends another message
-    bot.register_next_step_handler(message, handle_twitter_link, vote_process_id, bot,fromUserId)
+    # handle_twitter_link(message, vote_process_id, bot,fromUserId,originalMessage)
+    bot.register_next_step_handler(message, handle_twitter_link, vote_process_id, bot,fromUserId,originalMessage)
 
-def handle_twitter_link(message, vote_process_id, bot,fromUserId):
+def handle_twitter_link(message, vote_process_id, bot,fromUserId,originalMessage):
     # Extract the Twitter link from the user's message
     twitter_link = message.text
         
     # validate link
     if message.from_user.id != vote_initiators.get(vote_process_id):
         #bot.reply_to(message, "Sorry, only the user who initiated this vote can provide the Twitter link.")
-        bot.register_next_step_handler(message, handle_twitter_link, vote_process_id, bot,fromUserId)
+        bot.register_next_step_handler(message, handle_twitter_link, vote_process_id, bot,fromUserId,originalMessage)
         return
         
     if twitter_link.startswith("https://twitter.com/") == False:
-        bot.reply_to(message, "Sorry, that doesn't look like a Twitter link. Please try again.")
+        # bot.reply_to(message, "Sorry, that doesn't look like a Twitter link. Please try again.")
+        bot.send_message(fromUserId, "Sorry, that doesn't look like a Twitter link. Please try again.")
         return
     # Get the image ID from the user's data
     user_data = user_data_dict[vote_process_id]
@@ -84,7 +87,7 @@ def handle_twitter_link(message, vote_process_id, bot,fromUserId):
     success = add_vote_to_backend(image_id, twitter_link,fromUserId)
     
     if success:
-        bot.reply_to(message, "Thank you for your vote! Your vote has been recorded.")
+        bot.reply_to(originalMessage, "Thank you for your vote! Your vote has been recorded.")
     else:
         bot.reply_to(message, "Sorry, there was an issue recording your vote. Please try again later.")
     

@@ -7,7 +7,7 @@ from components.database import DB
 from components.profile import profile, handleSelectedGroup
 from components.join_group import join_group
 from components.settings import settings, handleSelectedCommunity, removeCommunity, cancel
-from components.vote import vote
+from components.vote import vote,handle_vote_reply_message
 from components.help import help
 mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object with the bot token we have
 
@@ -20,7 +20,7 @@ mint_bot.register_message_handler(settings, pass_bot=True, commands=['settings']
 mint_bot.register_message_handler(profile, pass_bot=True, commands=['profile'])
 # mint_bot.register_message_handler(vote, pass_bot=True, commands=['vote'])
 mint_bot.register_message_handler(help, pass_bot=True, commands=['help'])
-
+mint_bot.register_message_handler(handle_vote_reply_message, pass_bot=True, content_types=['text'])
 
 # also run vote with the callback query
 mint_bot.register_callback_query_handler(vote, pass_bot=True, func=lambda call: call.data.startswith('vote_'))

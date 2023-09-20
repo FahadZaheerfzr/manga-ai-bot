@@ -7,6 +7,7 @@ from config import BACKEND_URL
 # Dictionary to store user data temporarily
 user_data_dict = {}
 vote_initiators = {}
+messages = {}
 # Command handler for '/vote'
 def vote(message: types.CallbackQuery,bot):
     # Create a unique identifier for this vote process
@@ -17,9 +18,12 @@ def vote(message: types.CallbackQuery,bot):
     user_data_dict[vote_process_id] = {}
     vote_initiators[vote_process_id] = message.from_user.id
     originalMessage = message.message
+    messages[message.from_user.id] = message.message
+    
     # Reply to the user and instruct them to forward an image to dm
     # bot.send_message(message.from_user.id, "Please forward the image you want to vote for to me.")
     print(vote_process_id,"the vote process id")
+    # bot.reply_to(originalMessage, "Please forward the image you want to vote for to me.")
     handle_forwarded_image(message.message,message.from_user.id, vote_process_id, bot,originalMessage)
     # bot.register_next_step_handler(message.message, handle_forwarded_image, message.from_user.id, vote_process_id, bot,originalMessage)
 
@@ -80,33 +84,41 @@ def handle_vote_reply_message(message,bot):
 
 def handle_twitter_link(message, vote_process_id, bot,fromUserId,image_id):
     # Extract the Twitter link from the user's message
-    print ("here")
-    twitter_link = message.text
+    try:
+        print ("here")
+        twitter_link = message.text
+        # get message from messages dict
+        originalMessage = messages[fromUserId]
 
-    # get image and check if voted by user
-    image=DB['images'].find_one({"id": image_id})
-    #if the user has already voted, then return
-    if fromUserId in image["votedBy"]:
-        bot.reply_to(message, "You have already voted for this image.")
-        return
+        # get image and check if voted by user
+        image=DB['images'].find_one({"id": image_id})
+        #if the user has already voted, then return
+        if fromUserId in image["votedBy"]:
+            bot.reply_to(message, "You have already voted for this image.")
+            return
+            
+        # validate link
+        if twitter_link.startswith("https://twitter.com/") == False:
+            # bot.reply_to(message, "Sorry, that doesn't look like a Twitter link. Please try again.")
+            bot.send_message(fromUserId, "Sorry, that doesn't look like a Twitter link. Please try again.")
+            return
+
         
-    # validate link
-    if twitter_link.startswith("https://twitter.com/") == False:
-        # bot.reply_to(message, "Sorry, that doesn't look like a Twitter link. Please try again.")
-        bot.send_message(fromUserId, "Sorry, that doesn't look like a Twitter link. Please try again.")
+        # Save the vote in the backend (you will need to implement this)
+        success = add_vote_to_backend(image_id, twitter_link,fromUserId)
+        group_chat_id = image["group_id"]
+        if success:
+            bot.reply_to(originalMessage, "Your vote has been recorded successfully!")
+        else:
+            bot.reply_to(message, "Sorry, there was an issue recording your vote. Please try again later.")
+        
+        # Clear user data for this vote process
+        # del user_data_dict[vote_process_id]
+        del messages[fromUserId]
+    except Exception as e:
+        print(e)
+        bot.reply_to(message, "Please try clicking vote again as it's a one-time process.")
         return
-
-    
-    # Save the vote in the backend (you will need to implement this)
-    success = add_vote_to_backend(image_id, twitter_link,fromUserId)
-    group_chat_id = image["group_id"]
-    if success:
-        bot.send_message(group_chat_id, "Your vote has been recorded successfully!")
-    else:
-        bot.reply_to(message, "Sorry, there was an issue recording your vote. Please try again later.")
-    
-    # Clear user data for this vote process
-    # del user_data_dict[vote_process_id]
 
 def add_vote_to_backend(image_id, twitter_link,user_id):
     # Remove spaces before or after image_id
@@ -128,4 +140,5 @@ def add_vote_to_backend(image_id, twitter_link,user_id):
     except Exception as e:
         print(e)
         return False
+
 

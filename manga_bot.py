@@ -20,7 +20,6 @@ mint_bot.register_message_handler(settings, pass_bot=True, commands=['settings']
 mint_bot.register_message_handler(profile, pass_bot=True, commands=['profile'])
 # mint_bot.register_message_handler(vote, pass_bot=True, commands=['vote'])
 mint_bot.register_message_handler(help, pass_bot=True, commands=['help'])
-mint_bot.register_message_handler(handle_vote_reply_message, pass_bot=True, content_types=['text'])
 
 # also run vote with the callback query
 mint_bot.register_callback_query_handler(vote, pass_bot=True, func=lambda call: call.data.startswith('vote_'))

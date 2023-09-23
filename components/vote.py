@@ -22,70 +22,21 @@ def vote(message: types.CallbackQuery,bot):
     
     # Reply to the user and instruct them to forward an image to dm
     # bot.send_message(message.from_user.id, "Please forward the image you want to vote for to me.")
-    print(vote_process_id,"the vote process id")
     # bot.reply_to(originalMessage, "Please forward the image you want to vote for to me.")
-    handle_forwarded_image(message.message,message.from_user.id, vote_process_id, bot,originalMessage)
+    return handle_forwarded_image(message.message,message.from_user.id, message.from_user.username, vote_process_id, bot,originalMessage)
     # bot.register_next_step_handler(message.message, handle_forwarded_image, message.from_user.id, vote_process_id, bot,originalMessage)
 
 
-def handle_forwarded_image(message,fromUserId, vote_process_id, bot,originalMessage):
-    # Extract the image ID from the forwarded message
-    #print the text after Image ID: in the caption
-    image_id = message.caption.split("Image ID: ")[1]
-    #now remove everything after the image id
-    image_id = image_id.split("\n")[0]
-    image_id = image_id.strip()
-
-    #check votedBy and see if the user has already voted
-    image=DB['images'].find_one({"id": image_id})
-    #if the user has already voted, then return
-
-    #check if the group of the image has voting enabled
-    groupID= int (image["group_id"])
-    group = DB['group'].find_one({"_id": groupID})
-    print (group)
-
-    if group is None:
-        bot.reply_to(message, "This image wasn't part of any group")
-        return
-    
-    if group["voting_system"] == False:
-        bot.reply_to(message, "Voting is not enabled for this group.")
-        return
-    
-    if fromUserId in image["votedBy"]:
-        bot.reply_to(message, "You have already voted for this image.")
-        return
-    
-    # Ask the user to provide the Twitter link
-    # bot.reply_to(message, "Great! Now, please send the Twitter link of the post associated with this image.")
-    bot.send_message(fromUserId, f"Great! Now, please reply to this message with the Twitter link of the post associated with the image: {image_id}")
-    # Save the image ID for later use
-    user_data_dict[vote_process_id]['current_image_id'] = image_id
-    
-    return
-    # Set the next step to handle the Twitter link if the same user sends another message
-    # handle_twitter_link(message, vote_process_id, bot,fromUserId,originalMessage)
-    # bot.register_next_step_handler(message, handle_twitter_link, vote_process_id, bot,fromUserId,originalMessage)
-
-
-def handle_vote_reply_message(message,bot):
+def handle_vote_reply_message(message,bot,image_id):
     # Check if the received message is a reply to the specific message
-    if (
-        message.reply_to_message is not None
-        and message.reply_to_message.text.startswith("Great! Now, please reply to this message with the Twitter link of the post associated with the image:")
-    ):
         # get image id from the message
-        image_id = message.reply_to_message.text.split("image: ")[1]
-        # bot.register_next_step_handler(message, handle_twitter_link, message.reply_to_message.chat.id, bot,message.from_user.id)
-        handle_twitter_link(message, message.reply_to_message.chat.id, bot,message.from_user.id,image_id)
-    else:
-        pass
+    # bot.register_next_step_handler(message, handle_twitter_link, message.reply_to_message.chat.id, bot,message.from_user.id)
+    return handle_twitter_link(message, message.chat.id, bot,message.from_user.id, image_id)
+
 
 def handle_twitter_link(message, vote_process_id, bot,fromUserId,image_id):
     # Extract the Twitter link from the user's message
     try:
-        print ("here")
         twitter_link = message.text
         # get message from messages dict
         originalMessage = messages[fromUserId]
@@ -108,7 +59,8 @@ def handle_twitter_link(message, vote_process_id, bot,fromUserId,image_id):
         success = add_vote_to_backend(image_id, twitter_link,fromUserId)
         group_chat_id = image["group_id"]
         if success:
-            bot.reply_to(originalMessage, "Your vote has been recorded successfully!")
+            bot.reply_to(message, f'The vote has been recorded successfully!')
+            bot.reply_to(originalMessage, f'{twitter_link}')
         else:
             bot.reply_to(message, "Sorry, there was an issue recording your vote. Please try again later.")
         
@@ -124,7 +76,6 @@ def add_vote_to_backend(image_id, twitter_link,user_id):
     # Remove spaces before or after image_id
     
     # Add code here to save the vote in your backend
-    print(image_id, twitter_link)
     #we will do it directly to db
     #get the image from db
     try:
@@ -142,3 +93,43 @@ def add_vote_to_backend(image_id, twitter_link,user_id):
         return False
 
 
+
+
+def handle_forwarded_image(message,fromUserId,username, vote_process_id, bot,originalMessage):
+    # Extract the image ID from the forwarded message
+    #print the text after Image ID: in the caption
+    image_id = message.caption.split("Image ID: ")[1]
+    #now remove everything after the image id
+    image_id = image_id.split("\n")[0]
+    image_id = image_id.strip()
+
+    #check votedBy and see if the user has already voted
+    image=DB['images'].find_one({"id": image_id})
+    #if the user has already voted, then return
+
+    #check if the group of the image has voting enabled
+    groupID= int (image["group_id"])
+    group = DB['group'].find_one({"_id": groupID})
+
+    if group is None:
+        bot.reply_to(message, "This image wasn't part of any group")
+        return
+    
+    if group["voting_system"] == False:
+        bot.reply_to(message, "Voting is not enabled for this group.")
+        return
+    
+    if fromUserId in image["votedBy"]:
+        bot.reply_to(message, "You have already voted for this image.")
+        return
+    
+    # Ask the user to provide the Twitter link
+    # bot.reply_to(message, "Great! Now, please send the Twitter link of the post associated with this image.")
+    bot.send_message(originalMessage.chat.id, f"@{username}")
+    bot.send_message(fromUserId, f"To continue voting, please upload the image to Twitter using the hashtag #Manga and mention @mangaaiofficial. Then, send the Twitter link as a response to this message.")
+    # Save the image ID for later use
+    user_data_dict[vote_process_id]['current_image_id'] = image_id
+    # bot.register_next_step_handler(message, handle_vote_reply_message, bot, image_id)
+    # Set the next step to handle the Twitter link if the same user sends another message
+    # handle_twitter_link(message, vote_process_id, bot,fromUserId,originalMessage)
+    bot.register_next_step_handler_by_chat_id(fromUserId, handle_twitter_link, vote_process_id, bot,fromUserId,image_id)

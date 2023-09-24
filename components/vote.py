@@ -125,7 +125,7 @@ def handle_forwarded_image(message,fromUserId,username, vote_process_id, bot,ori
     
     # Ask the user to provide the Twitter link
     # bot.reply_to(message, "Great! Now, please send the Twitter link of the post associated with this image.")
-    bot.send_message(originalMessage.chat.id, f"@{username}")
+    bot.send_message(originalMessage.chat.id, f"Kindly check your dm to proceed with voting @{username}")
     bot.send_message(fromUserId, f"To continue voting, please upload the image to Twitter using the hashtag #Manga and mention @mangaaiofficial. Then, send the Twitter link as a response to this message.")
     # Save the image ID for later use
     user_data_dict[vote_process_id]['current_image_id'] = image_id

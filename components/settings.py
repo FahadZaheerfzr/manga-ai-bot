@@ -47,7 +47,7 @@ def handleSelectedCommunity(message: types.CallbackQuery,bot):
 
 def settingFormatCommunity():
     return """
-            <b> Please select the community you wish to set up the mintbot:</b>
+            <b> Please select the community you wish to set up the manga bot:</b>
            """
 
 

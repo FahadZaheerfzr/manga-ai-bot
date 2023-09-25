@@ -16,7 +16,7 @@ def register(message: types.Message, bot: TeleBot):
             "point_system": False,
             "voting_system": False
         })
-        bot.reply_to(message, "Group registered, use the command /settings in my dm to manage your mintbot")
+        bot.reply_to(message, "Group registered, use the command /settings in my dm to manage your manga bot")
     except Exception as e:
         bot.reply_to(message, "This community is already registered. Please use /settings in my dm to configure your community.")
     

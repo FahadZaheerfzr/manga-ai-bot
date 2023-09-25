@@ -23,6 +23,10 @@ def generate(message,bot):
         image_generation_logger=setup_logger("image_generation")
         image_generation_logger.info(f"User {message.from_user.id} requested to generate an image.")
         group = DB['group'].find_one({"_id": message.chat.id})
+        if group is None:
+            image_generation_logger.info(f"User {message.from_user.id} is not in a group.")
+            bot.reply_to(message, "This group is not registered.")
+            return
         image_generation_logger.info(f"User {message.from_user.id} is in group {message.chat.id}.")
         image_responses = requests.get(BACKEND_URL+"/image/user/"+str(message.from_user.id))
         image_generation_logger.info(f"User {message.from_user.id} has generated {len(image_responses.json())} images today.")
@@ -144,6 +148,10 @@ def generate_image(message,bot):
         image_generation_logger=setup_logger("image_generation")
         image_generation_logger.info(f"User {message.from_user.id} requested to generate an image.")
         group = DB['group'].find_one({"_id": message.chat.id})
+        if group is None:
+            image_generation_logger.info(f"User {message.from_user.id} is not in a group.")
+            bot.reply_to(message, "This group is not registered.")
+            return
         image_generation_logger.info(f"User {message.from_user.id} is in group {message.chat.id}.")
         image_responses = requests.get(BACKEND_URL+"/image/user/"+str(message.from_user.id))
         image_generation_logger.info(f"User {message.from_user.id} has generated {len(image_responses.json())} images today.")

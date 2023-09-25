@@ -1,7 +1,8 @@
 import os
 from dotenv import load_dotenv, find_dotenv
   
-_ = load_dotenv(find_dotenv())  # read local .env file
+_ = load_dotenv(find_dotenv(), override=True)  # read local .env file
+
 
 ENVIRONMENT = os.getenv("ENVIRONMENT")
 print(ENVIRONMENT)

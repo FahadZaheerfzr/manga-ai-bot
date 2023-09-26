@@ -37,7 +37,15 @@ def generate(message,bot):
                 image_count += 1
         # calculate time left until the end of the day
         time_left = datetime.datetime.combine(datetime.date.today(), datetime.time.max) - datetime.datetime.now()
-        if image_count >= 3:
+
+        limit = 3
+        try:
+          if DB['members'].find_one({"username": message.from_user.username}) is not None:
+                limit = 10
+        except:
+            pass
+
+        if image_count >= limit:
             bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + (str(time_left).split(".")[0]).split(":")[0] + " hours and " + (str(time_left).split(".")[0]).split(":")[1] + " minutes.")
             return
         try:
@@ -162,7 +170,18 @@ def generate_image(message,bot):
                 image_count += 1
         # calculate time left until the end of the day
         time_left = datetime.datetime.combine(datetime.date.today(), datetime.time.max) - datetime.datetime.now()
-        if image_count >= 3:
+        # check username with members table in db
+        # if user is member, then allow to generate 5 images
+        # if user is not member, then allow to generate 3 images
+
+        limit = 3
+        try:
+          if DB['members'].find_one({"username": message.from_user.username}) is not None:
+                limit = 10
+        except:
+            pass
+
+        if image_count >= limit:
             bot.reply_to(message, "You have reached the maximum number of images you can generate for today. Please try again in " + (str(time_left).split(".")[0]).split(":")[0] + " hours and " + (str(time_left).split(".")[0]).split(":")[1] + " minutes.")
             return
         try:

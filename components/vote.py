@@ -49,7 +49,7 @@ def handle_twitter_link(message, vote_process_id, bot,fromUserId,image_id):
             return
             
         # validate link
-        if twitter_link.startswith("https://twitter.com/") == False:
+        if twitter_link.startswith("https://twitter.com/") == False and twitter_link.startswith("https://x.com/") == False:
             # bot.reply_to(message, "Sorry, that doesn't look like a Twitter link. Please try again.")
             bot.send_message(fromUserId, "Sorry, that doesn't look like a Twitter link. Please try again.")
             return

@@ -23,7 +23,7 @@ def generate(message,bot):
         image_generation_logger=setup_logger("image_generation")
         image_generation_logger.info(f"User {message.from_user.id} requested to generate an image.")
         group = DB['group'].find_one({"_id": message.chat.id})
-        if group is None:
+        if group is None and message.chat.type != "private":
             image_generation_logger.info(f"User {message.from_user.id} is not in a group.")
             bot.reply_to(message, "This group is not registered.")
             return
@@ -156,7 +156,7 @@ def generate_image(message,bot):
         image_generation_logger=setup_logger("image_generation")
         image_generation_logger.info(f"User {message.from_user.id} requested to generate an image.")
         group = DB['group'].find_one({"_id": message.chat.id})
-        if group is None:
+        if group is None and message.chat.type != "private":
             image_generation_logger.info(f"User {message.from_user.id} is not in a group.")
             bot.reply_to(message, "This group is not registered.")
             return

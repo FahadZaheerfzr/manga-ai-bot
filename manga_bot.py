@@ -41,6 +41,7 @@ mint_bot.register_callback_query_handler(notifSettings, pass_bot=True, func=lamb
 mint_bot.register_callback_query_handler(defaultImage, pass_bot=True, func=lambda call: call.data.startswith('defaultImage_'))
 mint_bot.register_callback_query_handler(setDefaultImageNormal, pass_bot=True, func=lambda call: call.data.startswith('setDefaultImageNormal_'))
 mint_bot.register_callback_query_handler(setDefaultImageAnime, pass_bot=True, func=lambda call: call.data.startswith('setDefaultImageAnime_'))
+mint_bot.register_callback_query_handler(settings, pass_bot=True, func=lambda call: call.data.startswith('settings_'))
 
 me = mint_bot.get_me() #get the bot information
 print(me.username) #print the bot username

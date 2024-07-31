@@ -12,6 +12,7 @@ from components.vote import vote,handle_vote_reply_message
 from components.help import help
 from components.leaderboard import handle_leaderboard_command
 from components.admin import disqualify
+from components.daily import daily_reward
 mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object with the bot token we have
 
 #mint_bot.register_message_handler(join_group, content_types=["new_chat_members"], pass_bot=True)  
@@ -27,6 +28,7 @@ mint_bot.register_message_handler(help, pass_bot=True, commands=['help'])
 mint_bot.register_message_handler(handle_points_command, pass_bot=True, commands=['points'])
 mint_bot.register_message_handler(handle_leaderboard_command, pass_bot=True, commands=['leaderboard'])
 mint_bot.register_message_handler(disqualify, pass_bot=True, commands=['disqualify'])
+mint_bot.register_message_handler(daily_reward,pass_bot=True,commands=['daily-reward'])
 
 # also run vote with the callback query
 mint_bot.register_callback_query_handler(vote, pass_bot=True, func=lambda call: call.data.startswith('vote_'))

@@ -1,5 +1,6 @@
 from telebot import types
 from components.database import DB
+from utils.functions import getGroups
 
 
 def settings(update, bot):
@@ -14,24 +15,7 @@ def settings(update, bot):
         user_id = update.from_user.id
         send_id=chat_id
 
-    groups = DB['group'].find({"owner": user_id})
-
-    if len(list(groups.clone())) == 0:
-        bot.reply_to(message, "You are not the owner of any community.")
-        return
-
-    communities = []
-    for group in groups:
-        community_name = group["name"]
-        community_id = group["_id"]
-        community_info = f"{community_name} ({community_id})"
-        communities.append(community_info)
-
-    reply_text = "List of owned communities:\n\n"
-    for idx, community in enumerate(communities, 1):
-        reply_text += f"{idx}. {community}\n"
-
-    reply_text += "\nPlease select a community by entering its corresponding number or type 'cancel' to exit."
+    communities = getGroups(bot, update, message, user_id)
 
     markup = types.InlineKeyboardMarkup()
     for idx in range(1, len(communities) + 1):

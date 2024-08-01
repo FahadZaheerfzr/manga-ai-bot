@@ -1,4 +1,4 @@
-
+from components.database import DB
 
 def start(message, bot):
     """
@@ -11,6 +11,13 @@ def start(message, bot):
     Returns:
         None
     """
+    # store user in db called botUsers
+    DB['botUsers'].insert_one({
+        "user_id": message.from_user.id,
+        "username": message.from_user.username,
+        "wallet": None,
+    })
+
     bot.send_message(message.from_user.id, startFormat(), parse_mode="HTML", disable_web_page_preview=True)
 
 #format for the start command respose message

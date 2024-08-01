@@ -1,5 +1,6 @@
 from telebot import types
 from components.database import DB
+from web3 import Web3
 
 def get_user_groups(bot, user_id):
     """
@@ -79,9 +80,26 @@ def profile(message, bot):
             bot.reply_to(message, "You are not a member of any community.")
             return
         
+        # get botUsers
+        botUsers = DB['botUsers'].find_one({"user_id": message.from_user.id})
+        if not botUsers:
+            DB['botUsers'].insert_one({
+                "user_id": message.from_user.id,
+                "username": message.from_user.username,
+                "wallet": None,
+            })
+        
         keyboard = types.InlineKeyboardMarkup()
         for group in user_groups:
             keyboard.add(types.InlineKeyboardButton(group['name'], callback_data="handleSelectedGroup|" + str(group['_id'])))
+
+        if botUsers['wallet']:
+            keyboard.add(types.InlineKeyboardButton("Update Wallet 💳", callback_data="setWallet_"))
+            keyboard.add(types.InlineKeyboardButton("View Wallet 💳", callback_data="viewWallet_"))
+        else:
+            keyboard.add(types.InlineKeyboardButton("Set Wallet 💳", callback_data="setWallet_"))
+
+        
         bot.send_message(message.from_user.id, "Select a group to view your profile.", reply_markup=keyboard)
     except Exception as e:
         print(e)
@@ -131,3 +149,55 @@ Send this invite {invite_link} to your friends to earn more points.
     except Exception as e:
         print(e)
         bot.send_message(user_id, "An error occurred. Please try again later.")
+
+
+# wallet
+
+def setWallet(message: types.CallbackQuery, bot):
+    """
+    Handles the setting of a wallet address for the user.
+    """
+        # delete last bot message 
+    # try:
+    #     bot.delete_message(message.chat.id, message.message_id)
+    # except Exception as e:
+    #     print(e)
+    #     pass
+
+
+    user_id = message.from_user.id
+    bot.send_message(user_id, "Please enter your wallet address.")
+    bot.register_next_step_handler(message.message, handleWalletInput,bot)
+
+def handleWalletInput(message, bot):
+    """
+    Handles the input of the wallet address and updates the database.
+    """
+    print("abcd",message.from_user.id)
+    user_id = message.from_user.id
+    wallet_address = message.text
+
+    if not Web3.is_address(wallet_address):
+        bot.send_message(user_id, "Invalid wallet address. Please try again.")
+        bot.register_next_step_handler(message, handleWalletInput,bot)
+        return
+
+    DB['botUsers'].update_one(
+        {"user_id": user_id},
+        {"$set": {"wallet": wallet_address}},
+        upsert=True
+    )
+    bot.send_message(user_id, "Wallet address updated successfully.")
+
+
+def viewWallet(message, bot):
+        """
+        Handles the viewing of the wallet address for the user.
+        """
+        user_id = message.from_user.id
+        botUsers = DB['botUsers'].find_one({"user_id": user_id})
+        wallet_address = botUsers['wallet']
+        if wallet_address:
+            bot.send_message(user_id, f"Your wallet address: {wallet_address}")
+        else:
+            bot.send_message(user_id, "You have not set a wallet address yet.")

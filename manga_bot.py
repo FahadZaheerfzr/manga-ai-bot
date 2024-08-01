@@ -5,7 +5,7 @@ from components.start import start #import the start function from the start.py 
 from components.generate import generate, generate_image,generateDefault #import the generate function from the generate.py file
 from components.register import register #import the register function from the register.py file
 from components.database import DB
-from components.profile import profile, handleSelectedGroup,handle_points_command
+from components.profile import profile, handleSelectedGroup,handle_points_command,setWallet,viewWallet
 from components.join_group import join_group
 from components.settings import settings, handleSelectedCommunity, removeCommunity, cancel,enableNotif,disableNotif,notifSettings,defaultImage,setDefaultImageNormal,setDefaultImageAnime
 from components.vote import vote,handle_vote_reply_message
@@ -13,6 +13,7 @@ from components.help import help
 from components.leaderboard import handle_leaderboard_command
 from components.admin import disqualify
 from components.daily import daily_reward
+from components.campaign import organizeCampaign,handleSelectedOrganize,handleConfirm
 mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object with the bot token we have
 
 #mint_bot.register_message_handler(join_group, content_types=["new_chat_members"], pass_bot=True)  
@@ -28,7 +29,8 @@ mint_bot.register_message_handler(help, pass_bot=True, commands=['help'])
 mint_bot.register_message_handler(handle_points_command, pass_bot=True, commands=['points'])
 mint_bot.register_message_handler(handle_leaderboard_command, pass_bot=True, commands=['leaderboard'])
 mint_bot.register_message_handler(disqualify, pass_bot=True, commands=['disqualify'])
-mint_bot.register_message_handler(daily_reward,pass_bot=True,commands=['daily-reward'])
+mint_bot.register_message_handler(daily_reward,pass_bot=True,commands=['daily'])
+mint_bot.register_message_handler(organizeCampaign, pass_bot=True, commands=['organize_campaign'])
 
 # also run vote with the callback query
 mint_bot.register_callback_query_handler(vote, pass_bot=True, func=lambda call: call.data.startswith('vote_'))
@@ -44,6 +46,10 @@ mint_bot.register_callback_query_handler(defaultImage, pass_bot=True, func=lambd
 mint_bot.register_callback_query_handler(setDefaultImageNormal, pass_bot=True, func=lambda call: call.data.startswith('setDefaultImageNormal_'))
 mint_bot.register_callback_query_handler(setDefaultImageAnime, pass_bot=True, func=lambda call: call.data.startswith('setDefaultImageAnime_'))
 mint_bot.register_callback_query_handler(settings, pass_bot=True, func=lambda call: call.data.startswith('settings_'))
+mint_bot.register_callback_query_handler(setWallet, pass_bot=True, func=lambda call: call.data.startswith('setWallet_'))
+mint_bot.register_callback_query_handler(viewWallet, pass_bot=True, func=lambda call: call.data.startswith('viewWallet_'))
+mint_bot.register_callback_query_handler(handleSelectedOrganize, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedOrganize|'))
+mint_bot.register_callback_query_handler(handleConfirm, pass_bot=True, func=lambda call: call.data.startswith('confirm_'))
 
 me = mint_bot.get_me() #get the bot information
 print(me.username) #print the bot username
@@ -57,7 +63,10 @@ commands = [
     types.BotCommand(command='/profile', description='View your profile'),
     types.BotCommand(command='/help', description='Get help with commands'),
     types.BotCommand(command='/leaderboard', description='Show the top 5 users with the highest points in this group'),
-
+    types.BotCommand(command='/points', description='Show your points'),
+    types.BotCommand(command='/disqualify', description='Disqualify a user from the daily reward'),
+    types.BotCommand(command='/daily', description='Claim the daily reward'),
+    types.BotCommand(command='/organize_campaign', description='Organize a campaign')
 ]
 mint_bot.set_my_commands(commands)
 

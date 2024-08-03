@@ -3,11 +3,8 @@ from components.database import DB
 from datetime import datetime, timedelta
 
 def get_reward_points(streak_length):
-    points_distribution = [10, 20, 65, 100]
-    if streak_length < len(points_distribution):
-        return points_distribution[streak_length]
-    else:
-        return points_distribution[-1]  
+    initialPoints=10
+    return initialPoints * (streak_length)
 
 def daily_reward(message, bot):
     """
@@ -23,11 +20,12 @@ def daily_reward(message, bot):
     
     today = datetime.now().date()
     daily_reward = DB['daily_rewards'].find_one({"user_id": user_id, "group_id": group_id})
-
+    print(daily_reward, "daily_reward")
     if daily_reward:
         last_claimed_date = daily_reward["date_claimed"]
         streak_length = daily_reward.get("streak_length", 0)
-        
+        # convert date_claimed string to date
+        last_claimed_date = datetime.strptime(last_claimed_date, "%Y-%m-%d").date()
         # Check if the user skipped a day
         if last_claimed_date < today - timedelta(days=1):
             streak_length = 0  # Break the streak if a day is skipped
@@ -44,7 +42,7 @@ def daily_reward(message, bot):
         DB['daily_rewards'].update_one(
             {"_id": daily_reward["_id"]},
             {
-                "$set": {"date_claimed": today, "streak_length": streak_length},
+                "$set": {"date_claimed": str(today), "streak_length": streak_length},
                 "$inc": {"points": reward_points}
             }
         )
@@ -56,7 +54,7 @@ def daily_reward(message, bot):
         DB['daily_rewards'].insert_one({
             "user_id": user_id,
             "group_id": group_id,
-            "date_claimed": today,
+            "date_claimed": str(today),
             "points": reward_points,
             "streak_length": streak_length
         })

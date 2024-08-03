@@ -13,7 +13,7 @@ from components.help import help
 from components.leaderboard import handle_leaderboard_command
 from components.admin import disqualify
 from components.daily import daily_reward
-from components.campaign import organizeCampaign,handleSelectedOrganize,handleConfirm
+from components.campaign import organizeCampaign,handleSelectedOrganize,handleConfirm,joinCampaign,handleSelectedJoin,handleSelectedJoin_cancel
 mint_bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None) # create a bot object with the bot token we have
 
 #mint_bot.register_message_handler(join_group, content_types=["new_chat_members"], pass_bot=True)  
@@ -31,6 +31,8 @@ mint_bot.register_message_handler(handle_leaderboard_command, pass_bot=True, com
 mint_bot.register_message_handler(disqualify, pass_bot=True, commands=['disqualify'])
 mint_bot.register_message_handler(daily_reward,pass_bot=True,commands=['daily'])
 mint_bot.register_message_handler(organizeCampaign, pass_bot=True, commands=['organize_campaign'])
+mint_bot.register_message_handler(joinCampaign, pass_bot=True, commands=['join_campaign'])
+
 
 # also run vote with the callback query
 mint_bot.register_callback_query_handler(vote, pass_bot=True, func=lambda call: call.data.startswith('vote_'))
@@ -50,6 +52,8 @@ mint_bot.register_callback_query_handler(setWallet, pass_bot=True, func=lambda c
 mint_bot.register_callback_query_handler(viewWallet, pass_bot=True, func=lambda call: call.data.startswith('viewWallet_'))
 mint_bot.register_callback_query_handler(handleSelectedOrganize, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedOrganize|'))
 mint_bot.register_callback_query_handler(handleConfirm, pass_bot=True, func=lambda call: call.data.startswith('confirm_'))
+mint_bot.register_callback_query_handler(handleSelectedJoin, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedJoin|'))
+mint_bot.register_callback_query_handler(handleSelectedJoin_cancel, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedJoin_cancel'))
 
 me = mint_bot.get_me() #get the bot information
 print(me.username) #print the bot username
@@ -66,7 +70,9 @@ commands = [
     types.BotCommand(command='/points', description='Show your points'),
     types.BotCommand(command='/disqualify', description='Disqualify a user from the daily reward'),
     types.BotCommand(command='/daily', description='Claim the daily reward'),
-    types.BotCommand(command='/organize_campaign', description='Organize a campaign')
+    types.BotCommand(command='/organize_campaign', description='Organize a campaign'),
+    types.BotCommand(command='/join_campaign', description='join a campaign')
+
 ]
 mint_bot.set_my_commands(commands)
 

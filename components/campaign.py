@@ -5,6 +5,7 @@ from utils.functions import getGroups
 from components.settings import settingFormatCommunity
 from passlib.context import CryptContext
 from uuid import uuid4
+from bson import ObjectId
 
 
 
@@ -123,3 +124,58 @@ def handleCampaignEmail(message, community_id, bot):
 def handleConfirm(update, bot):
     bot.delete_message(update.message.chat.id, update.message.message_id)
  
+
+#  join campaign
+def joinCampaign(update, bot):
+    if isinstance(update, types.Message):
+        message = update
+        chat_id = message.chat.id
+        user_id = message.from_user.id
+        send_id = user_id
+    elif isinstance(update, types.CallbackQuery):
+        message = update.message
+        chat_id = message.chat.id
+        user_id = update.from_user.id
+        send_id=chat_id
+
+    allCampaigns = DB['campaigns'].find()
+    campaigns = []
+    for campaign in allCampaigns:
+        if user_id not in campaign["participants"]:
+            campaigns.append(campaign)
+
+    markup = types.InlineKeyboardMarkup()
+    for idx in range(1, len(campaigns) + 1):
+        markup.add(types.InlineKeyboardButton(campaigns[idx - 1]["name"], callback_data="handleSelectedJoin|" + str(campaigns[idx - 1]["_id"])))
+
+    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedJoin_cancel"))
+
+    bot.send_message(send_id, "Select a campaign to join.", reply_markup=markup)
+
+
+def handleSelectedJoin(update: types.CallbackQuery, bot):
+    campaign_id = update.data.split("|")[1]
+    user_id = update.from_user.id
+
+    try:
+        campaign_object_id = ObjectId(campaign_id)
+    except Exception as e:
+        bot.reply_to(update.message, "Invalid campaign ID.")
+        return
+
+    campaign = DB['campaigns'].find_one({"_id": campaign_object_id})
+    if not campaign:
+        bot.reply_to(update.message, "Campaign not found.")
+        return
+    # if user already in it dont add
+    if user_id in campaign["participants"]:
+        bot.reply_to(update.message, "You are already in this campaign.")
+        return
+    DB['campaigns'].update_one({"_id": campaign_object_id}, {"$push": {"participants": user_id}})
+    bot.reply_to(update.message, "You have successfully joined the campaign.")
+
+def handleSelectedJoin_cancel(update: types.CallbackQuery, bot):
+    bot.delete_message(update.message.chat.id, update.message.message_id)
+    bot.send_message(update.message.chat.id, "Cancelled.")
+
+    

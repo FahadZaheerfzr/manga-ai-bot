@@ -7,6 +7,7 @@ from PIL import Image, ImageFile, ImageDraw,ImageFont
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from components.database import DB
 from utils.logger import setup_logger
+from components.poll import get_active_campaign
 
 def generate(message,bot):
     """
@@ -59,12 +60,17 @@ def generate(message,bot):
             username = message.from_user.first_name + " " + message.from_user.last_name
         else:
             username = message.from_user.username
-
+        # find current active campaign
+        campaignId = None
+        active_campaign = get_active_campaign(message.chat.id)
+        if active_campaign is not None:
+            campaignId = active_campaign["_id"]
         params = {
             "prompt": prompt,
             "name":username,
             "user_id": message.from_user.id,
             "group_id": message.chat.id,
+            "campaign_id": str(campaignId)
         }
         image_file_path = "v1_txt2img_0.png"
         try:
@@ -206,11 +212,16 @@ def generate_image(message,bot):
             username = message.from_user.first_name + " " + message.from_user.last_name
         else:
             username = message.from_user.username
+        campaignId = None
+        active_campaign = get_active_campaign(message.chat.id)
+        if active_campaign is not None:
+            campaignId = active_campaign["_id"]
         params = {
             "prompt": prompt,
             "name":username,
             "user_id": message.from_user.id,
             "group_id": message.chat.id,
+            "campaign_id": str(campaignId)
         }
         image_file_path = "v1_txt2img_0.png"
         try:
@@ -363,12 +374,16 @@ def generateDefault(message,bot):
             username = message.from_user.first_name + " " + message.from_user.last_name
         else:
             username = message.from_user.username
-
+        campaignId = None
+        active_campaign = get_active_campaign(message.chat.id)
+        if active_campaign is not None:
+            campaignId = active_campaign["_id"]
         params = {
             "prompt": prompt,
             "name":username,
             "user_id": message.from_user.id,
             "group_id": message.chat.id,
+            "campaign_id": str(campaignId)
         }
         image_file_path = "v1_txt2img_0.png"
         try:

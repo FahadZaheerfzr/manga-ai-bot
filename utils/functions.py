@@ -19,3 +19,7 @@ def getGroups(bot,update,message,user_id):
 
 
     return communities
+
+def checkIfAdmin(bot,chat_id,user_id):
+    chat_member = bot.get_chat_member(chat_id, user_id)
+    return chat_member.status == 'administrator' or chat_member.status == 'creator'

@@ -46,6 +46,10 @@ def daily_reward(message, bot):
                 "$inc": {"points": reward_points}
             }
         )
+        DB['botUsers'].update_one(
+            {"user_id": user_id},
+            {"$inc": {"points": reward_points}}
+        )
     else:
         # Insert a new record with initial streak length
         streak_length = 1
@@ -58,5 +62,9 @@ def daily_reward(message, bot):
             "points": reward_points,
             "streak_length": streak_length
         })
+        DB['botUsers'].update_one(
+            {"user_id": user_id},
+            {"$inc": {"points": reward_points}}
+        )
 
     bot.reply_to(message, f"You have claimed your daily reward of {reward_points} points!")

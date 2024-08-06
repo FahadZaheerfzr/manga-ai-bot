@@ -6,6 +6,7 @@ from components.settings import settingFormatCommunity
 from passlib.context import CryptContext
 from uuid import uuid4
 from bson import ObjectId
+from components.poll import get_active_campaign
 
 
 
@@ -27,11 +28,21 @@ def organizeCampaign(update, bot):
         user_id = update.from_user.id
         send_id=chat_id
 
+
     communities = getGroups(bot, update, message, user_id)
 
+    # if query, print it
+    query = message.text.split(" ")
+    referrer_id = 0
+    if len(query) > 1:
+        referrer_id = int(query[1].split("_")[0])
+        
+
+    if not communities:
+        return
     markup = types.InlineKeyboardMarkup()
     for idx in range(1, len(communities) + 1):
-        markup.add(types.InlineKeyboardButton(str(communities[idx - 1]), callback_data="handleSelectedOrganize|" + str(communities[idx - 1])))
+        markup.add(types.InlineKeyboardButton(str(communities[idx - 1]), callback_data="handleSelectedOrganize|" + str(communities[idx - 1] + "|" + str(referrer_id))))
 
     markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedOrganize_cancel"))
     print(message.from_user.id, "message.from_user.id")
@@ -41,6 +52,7 @@ def organizeCampaign(update, bot):
 def handleSelectedOrganize(update: types.CallbackQuery, bot):
     data = update.data.split("|")
     community_id = int(data[1].split("(")[1].split(")")[0])
+    referrer_id = int(data[2])
     user_id = update.from_user.id
 
     community = DB['group'].find_one({"_id": community_id})
@@ -52,26 +64,29 @@ def handleSelectedOrganize(update: types.CallbackQuery, bot):
     if community["owner"] != user_id:
         bot.reply_to(update.message, "You are not the owner of this community.")
         return
-    # ask for start message of the new campaign
+    active_campaign = get_active_campaign(community_id)
+    if active_campaign:
+        bot.reply_to(update.message, "There is already an active campaign in this community.")
+        return
 
     bot.send_message(user_id, "Please enter the name for the campaign.")
 
-    bot.register_next_step_handler(update.message, handleCampaignName, community_id, bot)
+    bot.register_next_step_handler(update.message, handleCampaignName, community_id, bot, referrer_id)
 
 
-def handleCampaignName(message, community_id, bot):
+def handleCampaignName(message, community_id, bot, referrer_id):
     campaign_name = message.text
     bot.send_message(message.chat.id, "Please enter the description for the campaign.")
-    bot.register_next_step_handler(message, handleCampaignDescription, community_id, campaign_name, bot)
+    bot.register_next_step_handler(message, handleCampaignDescription, community_id, campaign_name, bot, referrer_id)
 
 
-def handleCampaignDescription(message, community_id, campaign_name, bot):
+def handleCampaignDescription(message, community_id, campaign_name, bot, referrer_id):
     campaign_description = message.text
     bot.send_message(message.chat.id, "Please enter the end date for the campaign in the format YYYY-MM-DD.")
-    bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot)
+    bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot, referrer_id)
 
 
-def handleCampaignEndDate(message, community_id, campaign_name, campaign_description, bot):
+def handleCampaignEndDate(message, community_id, campaign_name, campaign_description, bot, referrer_id):
     try:
         end_date = datetime.strptime(message.text, "%Y-%m-%d").date()
     except ValueError:
@@ -88,10 +103,22 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
         "description": campaign_description,
         "end_date": str(end_date),
         "participants": [],})
-    
-    bot.send_message(message.chat.id, "Campaign created successfully. Please provide your email address for the admin panel.")
+    print(referrer_id, "referrer_id")
+    if referrer_id != "0" and referrer_id != 0:
+        # check if referral already exists
+        referral = DB['project_referral'].find_one({"referrer_id": int(referrer_id), "user_id": int(message.from_user.id)})
+        if not referral:
+            DB['project_referral'].insert_one({
+                "referrer_id": int(referrer_id),
+                "user_id": int(message.from_user.id),
+                "points": 20,
+            })
+            bot.send_message(message.chat.id, f"You have claimed 20 points from the referral, campaign created successfully. Please provide your email address for the admin panel.")
+            bot.register_next_step_handler(message, handleCampaignEmail, community_id, bot)
+    else:
+        bot.send_message(message.chat.id, "Campaign created successfully. Please provide your email address for the admin panel.")
 
-    bot.register_next_step_handler(message, handleCampaignEmail, community_id, bot)
+        bot.register_next_step_handler(message, handleCampaignEmail, community_id, bot)
 
 
 def handleCampaignEmail(message, community_id, bot):
@@ -172,6 +199,7 @@ def handleSelectedJoin(update: types.CallbackQuery, bot):
         bot.reply_to(update.message, "You are already in this campaign.")
         return
     DB['campaigns'].update_one({"_id": campaign_object_id}, {"$push": {"participants": user_id}})
+    DB['botUsers'].update_one({"user_id": user_id}, {"$push": {"campaigns": campaign_object_id}})
     bot.reply_to(update.message, "You have successfully joined the campaign.")
 
 def handleSelectedJoin_cancel(update: types.CallbackQuery, bot):

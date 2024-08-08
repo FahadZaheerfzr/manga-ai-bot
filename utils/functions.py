@@ -1,5 +1,6 @@
 from telebot import types
 from components.database import DB
+import re
 
 def getGroups(bot,update,message,user_id):
 
@@ -23,3 +24,7 @@ def getGroups(bot,update,message,user_id):
 def checkIfAdmin(bot,chat_id,user_id):
     chat_member = bot.get_chat_member(chat_id, user_id)
     return chat_member.status == 'administrator' or chat_member.status == 'creator'
+
+def escape_markdown(text):
+    escape_chars = r'\*_`\['
+    return re.sub(f'([{escape_chars}])', r'\\\1', text)

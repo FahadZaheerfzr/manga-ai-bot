@@ -103,8 +103,10 @@ def check_campaign_end():
             end_date = datetime.strptime(campaign['end_date'], "%Y-%m-%d")
             if end_date < datetime.now():
                 for participant in campaign['participants']:
-                    images = DB['images'].find({"campaign_id": campaign['_id'], "user_id": participant})
-                    if images.count() == 0:
+                    images = list(DB['images'].find({"campaign_id": campaign['_id'], "user_id": participant}))
+                    if not images:
+                        return
+                    if not images.count() == 0:
                         return
                     else:
                         DB['botUsers'].update_one(

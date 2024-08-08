@@ -59,6 +59,12 @@ def create_poll(update, bot):
     poll = bot.send_poll(chat_id, "Cast your vote for the images", [image["id"] for image in images], is_anonymous=False, allows_multiple_answers=False)
     # save the poll ID in the database
     images = list(DB['images'].find({"campaign_id": str(active_campaign["_id"])}))
+    if not images:
+        bot.reply_to(message, "No images found for this campaign.")
+        return
+    if images.count() < 2:
+        bot.reply_to(message, "At least 2 images are required to create a poll.")
+        return
     pollOptions = []
     for image in images:
         print (image["id"])

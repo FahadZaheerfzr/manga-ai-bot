@@ -53,6 +53,7 @@ def handle_points_command(message, bot):
     print("abcd")
     user_id = message.from_user.id
     print(message.chat.type)
+    total_points = 0
     if message.chat.type == 'private':  # DM case
         total_points = get_points(bot,user_id)
         # check daily rewards
@@ -70,9 +71,9 @@ def handle_points_command(message, bot):
                 daily_reward = DB['daily_rewards'].find_one({"user_id": int(user_id)})
                 if daily_reward:
                     total_points += daily_reward["points"]
-                bot.send_message(user_id, f"Your points in this group: {points}")
+                bot.reply_to(message, f"Your points in this group: {points}")
             else:
-                bot.send_message(user_id, "You are not a member of this group or the group point system is not enabled.")
+                bot.reply_to(message, "You are not a member of this group or the group point system is not enabled.")
         else:
             bot.send_message(user_id, "You are not a member of any community.")
 

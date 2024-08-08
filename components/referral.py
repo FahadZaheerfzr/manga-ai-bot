@@ -25,8 +25,9 @@ def user_referral(update, bot):
     campaigns = []
     for campaignObjectId in listOfCampaignObjectIds:
         campaign = DB['campaigns'].find_one({"_id": campaignObjectId})
-        campaigns.append(campaign)
-
+        if campaign:
+            campaigns.append(campaign)
+    print(campaigns)
     markup = types.InlineKeyboardMarkup()
     for idx in range(1, len(campaigns) + 1):
         markup.add(types.InlineKeyboardButton(campaigns[idx - 1]["name"], callback_data="handleSelectedCampaign|" + str(campaigns[idx - 1]["_id"])))

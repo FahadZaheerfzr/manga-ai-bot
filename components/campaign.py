@@ -91,6 +91,7 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
         end_date = datetime.strptime(message.text, "%Y-%m-%d").date()
     except ValueError:
         bot.reply_to(message, "Invalid date format. Please use YYYY-MM-DD.")
+        bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot, referrer_id)
         return
 
     if end_date < datetime.now().date():

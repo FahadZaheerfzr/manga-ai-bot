@@ -1,12 +1,13 @@
 from telebot import types
 from components.database import DB
+from utils.functions import escape_markdown
 
 def get_group_users_points(group_id):
     """
     Fetches and returns a dictionary of user IDs and their points for a specific group.
     """
     users_points = {}
-    images = DB['images'].find({"group_id": group_id})
+    images = DB['images'].find({"group_id": str(group_id)})
     
     for image in images:
         user_id = image['user_id']
@@ -34,6 +35,7 @@ def handle_leaderboard_command(message, bot):
     
     group_id = message.chat.id
     top_users = get_leaderboard(group_id)
+    print (top_users)
     
     if not top_users:
         bot.send_message(group_id, "No points data available.")
@@ -43,6 +45,7 @@ def handle_leaderboard_command(message, bot):
     for index, (user_id, points) in enumerate(top_users):
         user = bot.get_chat_member(group_id, user_id)
         username = user.user.username if user.user.username else f"User {user.user.id}"
+        username = escape_markdown(username)
         leaderboard_text += f"{index + 1}. {username} - {points} points\n"
-    
+    print (leaderboard_text)
     bot.send_message(group_id, leaderboard_text, parse_mode="Markdown")

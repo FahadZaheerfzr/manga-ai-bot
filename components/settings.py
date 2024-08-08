@@ -18,8 +18,11 @@ def settings(update, bot):
     communities = getGroups(bot, update, message, user_id)
 
     markup = types.InlineKeyboardMarkup()
-    for idx in range(1, len(communities) + 1):
-        markup.add(types.InlineKeyboardButton(str(communities[idx - 1]), callback_data="handleSelectedCommunity|" + str(communities[idx - 1])))
+    if (communities):
+        for idx in range(1, len(communities) + 1):
+            markup.add(types.InlineKeyboardButton(str(communities[idx - 1]), callback_data="handleSelectedCommunity|" + str(communities[idx - 1])))
+    else:
+        return
 
     markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedCommunity_cancel"))
     print(message.from_user.id, "message.from_user.id")

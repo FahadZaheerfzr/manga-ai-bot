@@ -95,7 +95,9 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
         return
 
     if end_date < datetime.now().date():
+
         bot.reply_to(message, "End date must be in the future.")
+        bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot, referrer_id)
         return
 
     DB['campaigns'].insert_one({
@@ -103,10 +105,11 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
         "name": campaign_name,
         "description": campaign_description,
         "end_date": str(end_date),
-        "participants": [],})
+        "participants": [],
+    })
+
     print(referrer_id, "referrer_id")
     if referrer_id != "0" and referrer_id != 0:
-        # check if referral already exists
         referral = DB['project_referral'].find_one({"referrer_id": int(referrer_id), "user_id": int(message.from_user.id)})
         if not referral:
             DB['project_referral'].insert_one({
@@ -114,39 +117,53 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
                 "user_id": int(message.from_user.id),
                 "points": 20,
             })
-            bot.send_message(message.chat.id, f"You have claimed 20 points from the referral, campaign created successfully. Please provide your email address for the admin panel.")
-            bot.register_next_step_handler(message, handleCampaignEmail, community_id, bot)
+            bot.send_message(message.chat.id, "You have claimed 20 points from the referral, campaign created successfully.")
     else:
-        bot.send_message(message.chat.id, "Campaign created successfully. Please provide your email address for the admin panel.")
+        bot.send_message(message.chat.id, "Campaign created successfully.")
 
+    # Check if the email exists in botUsers
+    bot_user = DB["botUsers"].find_one({"user_id": int(message.from_user.id)})
+    print(bot_user, "bot_user",message.from_user.id)
+    if bot_user and "email" in bot_user:
+        email = bot_user["email"]
+        user = DB["users"].find_one({"email": email})
+        if user:
+            bot.send_message(message.chat.id, f"You already have an account with the email: {email}.")
+        else:
+            create_new_user(message, email, bot)
+    else:
+        bot.send_message(message.chat.id, "Please provide your email address for the admin panel.")
         bot.register_next_step_handler(message, handleCampaignEmail, community_id, bot)
 
 
 def handleCampaignEmail(message, community_id, bot):
     email = message.text
-    if DB["users"].find_one({"email": email}):
-        bot.reply_to(message, "You have already registered with this email address.")
-
+    if DB["users"].find_one({"id": message.from_user.id}):
+        bot.send_message(message.chat.id, "You already have an account.")
     else:
-        key=str(uuid4())
-        email=email
-        password=get_hashed_password(str(key))
-        role= "user"
-        print (email, password, role, key)
-        DB["users"].insert_one({
-            "email": email,
-            "password": password,
-            "role": role,
-            "id": message.from_user.id
-        })
+        # insert email into botUsers
+        DB["botUsers"].update_one({"user_id": message.from_user.id}, {"$set": {"email": email}})
+        create_new_user(message, email, bot)
 
-        # button to confirm and delete the message
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("Confirm", callback_data="confirm_"))
 
-        text = f"Here are your credentials for the admin panel:\n\nEmail: {email}\nPassword: {key}\n\nPlease save this information as it will not be shown again after you click confirm."
+def create_new_user(message, email, bot):
+    key = str(uuid4())
+    password = get_hashed_password(str(key))
+    role = "user"
 
-        bot.send_message(message.chat.id, text, reply_markup=markup)
+    DB["users"].insert_one({
+        "email": email,
+        "password": password,
+        "role": role,
+        "id": message.from_user.id
+    })
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("Confirm", callback_data="confirm_"))
+
+    text = f"Here are your credentials for the admin panel:\n\nEmail: {email}\nPassword: {key}\n\nPlease save this information as it will not be shown again after you click confirm."
+
+    bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
 def handleConfirm(update, bot):

@@ -29,18 +29,51 @@ Here are the available commands and their descriptions:
 
 /start - Start the bot.
 /register - Register your community.
-/img <i>prompt</i> - Generate an image based on the provided prompt.
+/img <i>prompt</i> - Generate an image based on the provided prompt (default depending on settings).
 /anime <i>prompt</i> - Generate an anime image based on the provided prompt.
+/normal <i>prompt</i> - Generate an image based on the provided prompt (non-anime).
 /profile - View your profile and statistics, and generate an invite link.
 /settings - Manage your community.
 /help - View this help message.
 
-<i>Usage:</i>
-- For image prompts, use any text as the <i>prompt</i>.
-- Use <code>/img mountain landscape</code> to generate an image of a mountain landscape.
+<b>Image Generation</b>
+/img <i>prompt</i> - Generate an image based on the provided prompt.
+- <i>Example:</i> <code>/img mountain landscape</code> to generate an image of a mountain landscape.
+/anime <i>prompt</i> - Generate an anime image based on the provided prompt.
+- <i>Example:</i> <code>/anime sunset over a city</code> to generate an anime-style image of a sunset over a city.
+/normal <i>prompt</i> - Generate an image based on the provided prompt (non-anime).
 
-<i>Note:</i>
-- Replace <i>prompt</i> with your desired text.
+<b>Leaderboard</b>
+/leaderboard - View the top 5 users with the highest points in this group.
 
-Enjoy using the bot! 🚀
+<b>Points and Leaderboard</b>
+/points - Check your points in the current group or across all groups.
+
+<b>Guide</b>
+1. <b>Starting the Bot</b>
+- Use the /start command to initiate interaction with the bot.
+- Follow the instructions to register your community if you haven't already.
+
+2. <b>Registering Your Community</b>
+- Use the /register command to register your community.
+- Make sure your community is set to enable the point system.
+
+3. <b>Generating Images</b>
+- Use the /img or /anime commands followed by your prompt to generate images.
+- Experiment with different prompts to get the best results.
+
+4. <b>Managing Your Profile and Settings</b>
+- Use the /profile command to view your profile and statistics.
+- Use the /settings command to manage community settings like enabling the point system.
+
+5. <b>Viewing the Leaderboard</b>
+- Use the /leaderboard command to see the top 5 users with the highest points in the current group.
+- This command only works inside a group where the point system is enabled.
+
+<i>Tips and Best Practices:</i>
+- Be specific with your image prompts for better results.
+- Engage with your community and earn points by participating and contributing.
+- Use the invite link generated in your profile to invite friends and earn referral points.
+
+Enjoy using the bot and make the most out of its features! 🚀
 """

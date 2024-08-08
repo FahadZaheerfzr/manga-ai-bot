@@ -113,18 +113,25 @@ def handle_poll(poll_answer, bot, required_points=100):
         DB['user_votes'].insert_one({"user_id": user_id, "poll_id": poll_id, "date": str(today)})
 
 
-def get_user_points(user_id):
+def get_user_points(user_id,sendAll=False):
     # we need to check all images of user , referrals in user_referral, project_referral and also daily rewards
+
+    print(user_id)
     user_points = 0
     user = DB['botUsers'].find_one({"user_id": user_id})
+    rewardPoints=0
     if user:
         user_points = user.get("points", 0)
+        rewardPoints = user_points
     # check images
+    image_points = 0
     images = DB['images'].find({"user_id": user_id})
     for image in images:
         user_points += image['points']
+        image_points += image['points']
 
     # check user_referrals
+    referral_points = 0
     user_referrals = DB['user_referrals'].find({
         "$or": [
             {"user_id": user_id},
@@ -133,8 +140,10 @@ def get_user_points(user_id):
     })
     for referral in user_referrals:
         user_points += referral['points']
+        referral_points += referral['points']
 
     # check project_referrals
+    project_referralPoints = 0
     project_referrals = DB['project_referral'].find({
         "$or": [
             {"referrer_id": user_id},
@@ -143,7 +152,9 @@ def get_user_points(user_id):
     })
     for referral in project_referrals:
         user_points += referral['points']
+        project_referralPoints += referral['points']
 
-    
+    if sendAll:
+        return user_points, image_points, referral_points, project_referralPoints, rewardPoints
     return user_points
         

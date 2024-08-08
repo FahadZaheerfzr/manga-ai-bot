@@ -5,7 +5,7 @@ from components.start import start  # import the start function from the start.p
 from components.generate import generate, generate_image, generateDefault  # import the generate function from the generate.py file
 from components.register import register  # import the register function from the register.py file
 from components.database import DB
-from components.profile import (profile, handleSelectedGroup, handle_points_command, setWallet, viewWallet)
+from components.profile import (profile, handleSelectedGroup, handle_points_command, setWallet, viewWallet, setEmail,setTwitter,viewEmail,viewTwitter)
 from components.join_group import join_group
 from components.settings import (settings, handleSelectedCommunity, removeCommunity, cancel, enableNotif, disableNotif, notifSettings, defaultImage, setDefaultImageNormal, setDefaultImageAnime)
 from components.vote import vote, handle_vote_reply_message
@@ -69,6 +69,12 @@ mint_bot.register_callback_query_handler(handleConfirm, pass_bot=True, func=lamb
 mint_bot.register_callback_query_handler(handleSelectedJoin, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedJoin|'))
 mint_bot.register_callback_query_handler(handleSelectedJoin_cancel, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedJoin_cancel'))
 mint_bot.register_callback_query_handler(handleSelectedCampaign, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedCampaign|'))
+mint_bot.register_callback_query_handler(handle_points_command, pass_bot=True, func=lambda call: call.data.startswith('viewPoints_'))
+mint_bot.register_callback_query_handler(setEmail, pass_bot=True, func=lambda call: call.data.startswith('setEmail_'))
+mint_bot.register_callback_query_handler(setTwitter, pass_bot=True, func=lambda call: call.data.startswith('setTwitter_'))
+mint_bot.register_callback_query_handler(viewEmail, pass_bot=True, func=lambda call: call.data.startswith('viewEmail_'))
+mint_bot.register_callback_query_handler(viewTwitter, pass_bot=True, func=lambda call: call.data.startswith('viewTwitter_'))
+
 
 me = mint_bot.get_me()  # Get the bot information
 print(me.username)  # Print the bot username

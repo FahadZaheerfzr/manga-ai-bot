@@ -170,7 +170,9 @@ def joinCampaign(update, bot):
     campaigns = []
     for campaign in allCampaigns:
         if user_id not in campaign["participants"]:
-            campaigns.append(campaign)
+            end_date = datetime.strptime(campaign["end_date"], "%Y-%m-%d").date()
+            if end_date > datetime.now().date():
+                campaigns.append(campaign)
 
     markup = types.InlineKeyboardMarkup()
     for idx in range(1, len(campaigns) + 1):

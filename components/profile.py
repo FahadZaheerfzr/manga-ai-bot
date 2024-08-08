@@ -1,6 +1,8 @@
 from telebot import types
 from components.database import DB
 from web3 import Web3
+from components.poll import get_user_points
+import re
 
 def get_user_groups(bot, user_id):
     """
@@ -23,18 +25,7 @@ def get_user_groups(bot, user_id):
 
     return user_groups
 
-def get_points(bot,user_id, group_id=None):
-    """
-    Fetches the points for a user either for a specific group or across all groups.
-    """
-    if group_id:
-        return check_points_in_group(user_id, group_id)
-    else:
-        total_points = 0
-        user_groups = get_user_groups(bot, user_id)
-        for group in user_groups:
-            total_points += check_points_in_group(user_id, group['_id'])
-        return total_points
+
 
 def check_points_in_group(user_id, group_id):
     """
@@ -46,36 +37,34 @@ def check_points_in_group(user_id, group_id):
         user_points += image['points']
     return user_points
 
-def handle_points_command(message, bot):
+def handle_points_command(update, bot):
     """
     Handles the /points command to respond with points information.
     """
+    if isinstance(update, types.Message):
+        message = update
+        chat_id = message.chat.id
+        user_id = message.from_user.id
+    elif isinstance(update, types.CallbackQuery):
+        message = update.message
+        chat_id = message.chat.id
+        user_id = update.from_user.id
     print("abcd")
-    user_id = message.from_user.id
+    # user_id = message.from_user.id
     print(message.chat.type)
-    total_points = 0
-    if message.chat.type == 'private':  # DM case
-        total_points = get_points(bot,user_id)
-        # check daily rewards
-        daily_reward = DB['daily_rewards'].find_one({"user_id": int(user_id)})
-        if daily_reward:
-            total_points += daily_reward["points"]
-        bot.send_message(user_id, f"Your total points across all groups: {total_points}")
-    else:  # Group case
-        user_groups = get_user_groups(bot, user_id)
-        if user_groups:
-            group_id = message.chat.id
-            if group_id in [group['_id'] for group in user_groups]:
-                print("group_id",group_id)
-                points = get_points(bot,user_id, group_id)
-                daily_reward = DB['daily_rewards'].find_one({"user_id": int(user_id)})
-                if daily_reward:
-                    total_points += daily_reward["points"]
-                bot.reply_to(message, f"Your points in this group: {points}")
-            else:
-                bot.reply_to(message, "You are not a member of this group or the group point system is not enabled.")
-        else:
-            bot.send_message(user_id, "You are not a member of any community.")
+                # return user_points, image_points, referral_points, project_referralPoints, rewardPoints -- get_user_points(user_id)
+    user_points, image_points, referral_points, project_referral_points, reward_points = get_user_points(user_id,sendAll=True)
+    
+    formatted_text = f"""
+<b>Total Points:</b> {user_points}
+<b>Image Points:</b> {image_points}
+<b>User Referral Points:</b> {referral_points}
+<b>Project Referral Points:</b> {project_referral_points}
+<b>Reward Points:</b> {reward_points}
+    """
+    bot.send_message(user_id, formatted_text, parse_mode="HTML")
+
+
 
 def profile(message, bot):
     """
@@ -106,6 +95,23 @@ def profile(message, bot):
             keyboard.add(types.InlineKeyboardButton("View Wallet 💳", callback_data="viewWallet_"))
         else:
             keyboard.add(types.InlineKeyboardButton("Set Wallet 💳", callback_data="setWallet_"))
+        # view points
+        keyboard.add(types.InlineKeyboardButton("Points Balance", callback_data="viewPoints_"))
+        try:
+            if botUsers['email']: 
+                keyboard.add(types.InlineKeyboardButton("Update Email 📧", callback_data="setEmail_"))
+                keyboard.add(types.InlineKeyboardButton("View Email 📧", callback_data="viewEmail_"))
+        except:
+            keyboard.add(types.InlineKeyboardButton("Set Email 📧", callback_data="setEmail_"))
+
+        try:
+            if botUsers['twitter']:
+                keyboard.add(types.InlineKeyboardButton("Update Twitter 🐦", callback_data="setTwitter_"))
+                keyboard.add(types.InlineKeyboardButton("View Twitter 🐦", callback_data="viewTwitter_"))
+        except:
+            keyboard.add(types.InlineKeyboardButton("Set Twitter 🐦", callback_data="setTwitter_"))
+
+            
 
         
         bot.send_message(message.from_user.id, "Select a group to view your profile.", reply_markup=keyboard)
@@ -209,3 +215,87 @@ def viewWallet(message, bot):
             bot.send_message(user_id, f"Your wallet address: {wallet_address}")
         else:
             bot.send_message(user_id, "You have not set a wallet address yet.")
+
+
+    # email
+            
+def setEmail(message: types.CallbackQuery, bot):
+    """
+    Handles the setting of an email address for the user.
+    """
+    user_id = message.from_user.id
+    bot.send_message(user_id, "Please enter your email address.")
+    bot.register_next_step_handler(message.message, handleEmailInput,bot)
+
+def handleEmailInput(message, bot):
+    """
+    Handles the input of the email address and updates the database.
+    """
+    user_id = message.from_user.id
+    email = message.text
+
+    if not "@" in email or not "." in email:
+        bot.send_message(user_id, "Invalid email address. Please try again.")
+        bot.register_next_step_handler(message, handleEmailInput,bot)
+        return
+
+    DB['botUsers'].update_one(
+        {"user_id": user_id},
+        {"$set": {"email": email}},
+        upsert=True
+    )
+    bot.send_message(user_id, "Email address updated successfully.")
+
+def viewEmail(message, bot):
+    """
+    Handles the viewing of the email address for the user.
+    """
+    user_id = message.from_user.id
+    botUsers = DB['botUsers'].find_one({"user_id": user_id})
+    email = botUsers['email']
+    if email:
+        bot.send_message(user_id, f"Your email address: {email}")
+    else:
+        bot.send_message(user_id, "You have not set an email address yet.")
+
+    # twitter
+        
+def setTwitter(message: types.CallbackQuery, bot):
+    """
+    Handles the setting of a twitter username for the user.
+    """
+    user_id = message.from_user.id
+    bot.send_message(user_id, "Please enter your twitter link.")
+    bot.register_next_step_handler(message.message, handleTwitterInput,bot)
+
+def handleTwitterInput(message, bot):
+    """
+    Handles the input of the twitter username and updates the database.
+    """
+    user_id = message.from_user.id
+    twitter = message.text
+    if not re.match(r'^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+$', twitter):
+        bot.send_message(user_id, "Invalid twitter link. Please try again.")
+        bot.register_next_step_handler(message, handleTwitterInput,bot)
+        return
+
+    DB['botUsers'].update_one(
+        {"user_id": user_id},
+        {"$set": {"twitter": twitter}},
+        upsert=True
+    )
+    bot.send_message(user_id, "Twitter username updated successfully.")
+
+def viewTwitter(message, bot):
+    """
+    Handles the viewing of the twitter username for the user.
+    """
+    user_id = message.from_user.id
+    botUsers = DB['botUsers'].find_one({"user_id": user_id})
+    twitter = botUsers['twitter']
+    if twitter:
+        bot.send_message(user_id, f"Your twitter link: {twitter}")
+    else:
+        bot.send_message(user_id, "You have not set a twitter link yet.")
+
+        

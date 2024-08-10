@@ -70,7 +70,6 @@ def handleSelectedOrganize(update: types.CallbackQuery, bot):
         return
 
     bot.send_message(user_id, "Please enter the name for the campaign.")
-
     bot.register_next_step_handler(update.message, handleCampaignName, community_id, bot, referrer_id)
 
 
@@ -84,6 +83,7 @@ def handleCampaignDescription(message, community_id, campaign_name, bot, referre
     campaign_description = message.text
     bot.send_message(message.chat.id, "Please enter the end date for the campaign in the format YYYY-MM-DD.")
     bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot, referrer_id)
+    
 
 
 def handleCampaignEndDate(message, community_id, campaign_name, campaign_description, bot, referrer_id):
@@ -95,20 +95,36 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
         return
 
     if end_date < datetime.now().date():
-
         bot.reply_to(message, "End date must be in the future.")
         bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot, referrer_id)
         return
 
-    DB['campaigns'].insert_one({
+    bot.send_message(message.chat.id, "Please upload an image for the campaign.")
+    bot.register_next_step_handler(message, handleCampaignImage, community_id, campaign_name, campaign_description, end_date, bot, referrer_id)
+
+
+def handleCampaignImage(message, community_id, campaign_name, campaign_description, end_date, bot, referrer_id):
+    if not message.photo:
+        bot.reply_to(message, "Please upload a valid image.")
+        bot.register_next_step_handler(message, handleCampaignImage, community_id, campaign_name, campaign_description, end_date, bot, referrer_id)
+        return
+
+    # Get the highest resolution of the image
+    file_id = message.photo[-1].file_id
+    file_info = bot.get_file(file_id)
+    image_path = bot.download_file(file_info.file_path)
+
+    # Save the image to the campaign (you might want to save the image file path or binary data in your DB)
+    campaign_id = DB['campaigns'].insert_one({
         "community_id": community_id,
         "name": campaign_name,
         "description": campaign_description,
         "end_date": str(end_date),
         "participants": [],
-    })
+        "image": image_path  # Save the image path or binary data
+    }).inserted_id
 
-    print(referrer_id, "referrer_id")
+    # Handle referral points
     if referrer_id != "0" and referrer_id != 0:
         referral = DB['project_referral'].find_one({"referrer_id": int(referrer_id), "user_id": int(message.from_user.id)})
         if not referral:
@@ -123,7 +139,6 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
 
     # Check if the email exists in botUsers
     bot_user = DB["botUsers"].find_one({"user_id": int(message.from_user.id)})
-    print(bot_user, "bot_user",message.from_user.id)
     if bot_user and "email" in bot_user:
         email = bot_user["email"]
         user = DB["users"].find_one({"email": email})
@@ -168,7 +183,7 @@ def create_new_user(message, email, bot):
 
 def handleConfirm(update, bot):
     bot.delete_message(update.message.chat.id, update.message.message_id)
- 
+
 
 #  join campaign
 def joinCampaign(update, bot):
@@ -227,3 +242,69 @@ def handleSelectedJoin_cancel(update: types.CallbackQuery, bot):
     bot.send_message(update.message.chat.id, "Cancelled.")
 
     
+
+def campaign_details(update, bot):
+    if isinstance(update, types.Message):
+        message = update
+        chat_id = message.chat.id
+        user_id = message.from_user.id
+        send_id = user_id
+    elif isinstance(update, types.CallbackQuery):
+        message = update.message
+        chat_id = message.chat.id
+        user_id = update.from_user.id
+        send_id = chat_id
+
+    allCampaigns = DB['campaigns'].find()
+    print(allCampaigns)
+    campaigns = []
+    for campaign in allCampaigns:
+        if user_id in campaign["participants"]:
+            end_date = datetime.strptime(campaign["end_date"], "%Y-%m-%d").date()
+            if end_date > datetime.now().date():
+                campaigns.append(campaign)
+
+    if not campaigns or len(campaigns) == 0:
+        bot.send_message(send_id, "You are not part of any active campaigns.")
+        return
+
+    markup = types.InlineKeyboardMarkup()
+    for idx in range(1, len(campaigns) + 1):
+        markup.add(types.InlineKeyboardButton(campaigns[idx - 1]["name"], callback_data="handleSelectedCampaignDetails|" + str(campaigns[idx - 1]["_id"])))
+
+    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedCampaignDetails_cancel"))
+
+    bot.send_message(send_id, "Select a campaign to view details.", reply_markup=markup)
+
+def handleSelectedCampaignDetails(update: types.CallbackQuery, bot):
+    campaign_id = update.data.split("|")[1]
+    user_id = update.from_user.id
+
+    try:
+        campaign_object_id = ObjectId(campaign_id)
+    except Exception as e:
+        bot.reply_to(update.message, "Invalid campaign ID.")
+        return
+
+    campaign = DB['campaigns'].find_one({"_id": campaign_object_id})
+    if not campaign:
+        bot.reply_to(update.message, "Campaign not found.")
+        return
+
+    end_date = datetime.strptime(campaign["end_date"], "%Y-%m-%d").date()
+    participants = campaign["participants"]
+    participants_count = len(participants)
+
+    # Prepare the campaign details text
+    campaign_details = (
+        f"Name: {campaign['name']}\n"
+        f"Description: {campaign['description']}\n"
+        f"End Date: {end_date}\n"
+        f"Participants: {participants_count}"
+    )
+
+    # Check if the campaign has an associated image
+    if "image" in campaign and campaign["image"]:
+        bot.send_photo(update.message.chat.id, campaign["image"], caption=campaign_details)
+    else:
+        bot.send_message(update.message.chat.id, campaign_details)

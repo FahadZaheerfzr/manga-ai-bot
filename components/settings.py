@@ -17,6 +17,9 @@ def settings(update, bot):
 
     communities = getGroups(bot, update, message, user_id)
 
+    if not communities:
+        bot.send_message(send_id, "You have not registered any communities. Please use /register to register your community.")
+
     markup = types.InlineKeyboardMarkup()
     if (communities):
         for idx in range(1, len(communities) + 1):

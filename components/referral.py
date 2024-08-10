@@ -18,10 +18,14 @@ def user_referral(update, bot):
 
     user = DB['botUsers'].find_one({"user_id": user_id})
     if not user:
-        bot.reply_to(update.message, "User not found.")
+        bot.reply_to(message, "User not found.")
         return
     # check which campaigns user is part of in user["campaigns"]
-    listOfCampaignObjectIds = user["campaigns"]
+    try:
+        listOfCampaignObjectIds = user["campaigns"]
+    except Exception as e:
+        bot.reply_to(message, "User has no campaigns.")
+        return
     campaigns = []
     for campaignObjectId in listOfCampaignObjectIds:
         campaign = DB['campaigns'].find_one({"_id": campaignObjectId})

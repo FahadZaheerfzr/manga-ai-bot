@@ -17,7 +17,7 @@ def get_group_users_points(group_id):
     
     return users_points
 
-def get_leaderboard(group_id, top_n=5):
+def get_leaderboard(group_id, top_n=20):
     """
     Fetches the top N users with the highest points in a specific group.
     """

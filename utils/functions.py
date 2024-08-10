@@ -7,9 +7,6 @@ def getGroups(bot,update,message,user_id):
 
     groups = DB['group'].find({"owner": user_id})
 
-    if len(list(groups.clone())) == 0:
-        bot.reply_to(message, "You are not the owner of any community.")
-        return
 
     communities = []
     for group in groups:

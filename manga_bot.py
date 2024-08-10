@@ -13,7 +13,7 @@ from components.help import help
 from components.leaderboard import handle_leaderboard_command
 from components.admin import disqualify
 from components.daily import daily_reward
-from components.campaign import (organizeCampaign, handleSelectedOrganize, handleConfirm, joinCampaign, handleSelectedJoin, handleSelectedJoin_cancel)
+from components.campaign import (organizeCampaign, handleSelectedOrganize, handleConfirm, joinCampaign, handleSelectedJoin, handleSelectedJoin_cancel,campaign_details,handleSelectedCampaignDetails)
 from components.referral import user_referral, handleSelectedCampaign, projectReferralLink
 from components.poll import create_poll, handle_poll
 from datetime import datetime
@@ -41,6 +41,7 @@ mint_bot.register_message_handler(joinCampaign,pass_bot=True, commands=['join_ca
 mint_bot.register_message_handler(user_referral,pass_bot=True, commands=['user_referral'])
 mint_bot.register_message_handler(projectReferralLink,pass_bot=True, commands=['project_referral'])
 mint_bot.register_message_handler(create_poll,pass_bot=True, commands=['vote'])
+mint_bot.register_message_handler(campaign_details,pass_bot=True, commands=['campaign_details'])
 
 # Register the handler for poll answers
 @mint_bot.poll_answer_handler()
@@ -74,6 +75,7 @@ mint_bot.register_callback_query_handler(setEmail, pass_bot=True, func=lambda ca
 mint_bot.register_callback_query_handler(setTwitter, pass_bot=True, func=lambda call: call.data.startswith('setTwitter_'))
 mint_bot.register_callback_query_handler(viewEmail, pass_bot=True, func=lambda call: call.data.startswith('viewEmail_'))
 mint_bot.register_callback_query_handler(viewTwitter, pass_bot=True, func=lambda call: call.data.startswith('viewTwitter_'))
+mint_bot.register_callback_query_handler(handleSelectedCampaignDetails, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedCampaignDetails|'))
 
 
 me = mint_bot.get_me()  # Get the bot information
@@ -96,6 +98,7 @@ commands = [
     types.BotCommand(command='/join_campaign', description='Join a campaign'),
     types.BotCommand(command='/user_referral', description='Get your referral link'),
     types.BotCommand(command='/project_referral', description='Get your project referral link'),
+    types.BotCommand(command='/campaign_details', description='View campaign details')
 ]
 mint_bot.set_my_commands(commands)
 

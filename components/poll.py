@@ -52,8 +52,14 @@ def create_poll(update, bot):
         bot.reply_to(message, "A poll is already active for this campaign.")
         return
     
-    # get all images of the active campaign
-    images = DB['images'].find({"campaign_id": str(active_campaign["_id"])})
+    images = DB['images'].find({
+        "campaign_id": str(active_campaign["_id"]),
+        "$or": [
+            {"disqualified": {"$exists": False}},
+            {"disqualified": False}
+        ]
+    })
+            
     
     # create the poll
     poll = bot.send_poll(chat_id, "Cast your vote for the images", [image["id"] for image in images], is_anonymous=False, allows_multiple_answers=False)
@@ -62,7 +68,7 @@ def create_poll(update, bot):
     if not images:
         bot.reply_to(message, "No images found for this campaign.")
         return
-    if images.count() < 2:
+    if len(images) < 2:
         bot.reply_to(message, "At least 2 images are required to create a poll.")
         return
     pollOptions = []
@@ -125,7 +131,13 @@ def get_user_points(user_id,sendAll=False):
         rewardPoints = user_points
     # check images
     image_points = 0
-    images = DB['images'].find({"user_id": user_id})
+    images = DB['images'].find({
+    "user_id": user_id,
+    "$or": [
+        {"disqualified": {"$exists": False}},
+        {"disqualified": False}
+    ]
+})
     for image in images:
         user_points += image['points']
         image_points += image['points']

@@ -7,8 +7,13 @@ def get_group_users_points(group_id):
     Fetches and returns a dictionary of user IDs and their points for a specific group.
     """
     users_points = {}
-    images = DB['images'].find({"group_id": str(group_id)})
-    
+    images = DB['images'].find({
+        "group_id": str(group_id),
+        "$or": [
+            {"disqualified": {"$exists": False}},
+            {"disqualified": False}
+        ]
+    })    
     for image in images:
         user_id = image['user_id']
         if user_id not in users_points:

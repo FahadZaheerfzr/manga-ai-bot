@@ -115,7 +115,16 @@ def check_campaign_end():
                     images = list(DB['images'].find({"campaign_id": campaign['_id'], "user_id": participant}))
                     if not images:
                         return
-                    if not images.count() == 0:
+                    if not len(images) == 0:
+                        return
+                    # if his images are disqualified, don't give him points
+                    # check list of images if all are disqualified
+                    disqualified = True
+                    for image in images:
+                        if 'disqualified' in image and not image['disqualified']:
+                            disqualified = False
+                            break
+                    if disqualified:
                         return
                     else:
                         DB['botUsers'].update_one(

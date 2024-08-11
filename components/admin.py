@@ -24,8 +24,8 @@ def disqualify(message, bot):
         bot.reply_to(message, "Image not found.")
         return
 
-    # delete the image from the database
-    DB['images'].delete_one({"id": image_id})
+    # add disqualified field to the image
+    DB['images'].update_one({"id": image_id}, {"$set": {"disqualified": True}})
     bot.reply_to(message, "Image disqualified successfully.")
     return
 

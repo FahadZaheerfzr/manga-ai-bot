@@ -1,7 +1,7 @@
 from telebot import types
 from components.database import DB
 from datetime import datetime, timedelta
-from utils.functions import getGroups
+from utils.functions import getGroups,checkIfAdmin
 from components.settings import settingFormatCommunity
 from passlib.context import CryptContext
 from uuid import uuid4
@@ -39,6 +39,7 @@ def organizeCampaign(update, bot):
         
 
     if not communities:
+        bot.send_message(send_id, "You have not setup the bot in any communities.")
         return
     markup = types.InlineKeyboardMarkup()
     for idx in range(1, len(communities) + 1):
@@ -60,9 +61,9 @@ def handleSelectedOrganize(update: types.CallbackQuery, bot):
         bot.reply_to(update.message, "Community not found.")
         return
 
-    # Check if the user is the owner of the community
-    if community["owner"] != user_id:
-        bot.reply_to(update.message, "You are not the owner of this community.")
+    # Check if the user is the owner or admin
+    if not checkIfAdmin(bot, community_id, user_id):
+        bot.reply_to(update.message, "You must be an admin to create a campaign.")
         return
     active_campaign = get_active_campaign(community_id)
     if active_campaign:
@@ -134,6 +135,7 @@ def handleCampaignImage(message, community_id, campaign_name, campaign_descripti
                 "points": 20,
             })
             bot.send_message(message.chat.id, "You have claimed 20 points from the referral, campaign created successfully.")
+            bot.send_message(referrer_id, f"User {message.from_user.username} has claimed your referral you get 20 points!")
     else:
         bot.send_message(message.chat.id, "Campaign created successfully.")
 
@@ -297,14 +299,14 @@ def handleSelectedCampaignDetails(update: types.CallbackQuery, bot):
 
     # Prepare the campaign details text
     campaign_details = (
-        f"Name: {campaign['name']}\n"
-        f"Description: {campaign['description']}\n"
-        f"End Date: {end_date}\n"
-        f"Participants: {participants_count}"
+        f"<b>Name:</b> {campaign['name']}\n"
+        f"<b>Description:</b> {campaign['description']}\n"
+        f"<b>End Date:</b> {end_date.strftime('%d %B %Y')}\n"
+        f"<b>Participants:</b> {participants_count}"
     )
 
     # Check if the campaign has an associated image
     if "image" in campaign and campaign["image"]:
-        bot.send_photo(update.message.chat.id, campaign["image"], caption=campaign_details)
+        bot.send_photo(update.message.chat.id, campaign["image"], caption=campaign_details, parse_mode="HTML")
     else:
-        bot.send_message(update.message.chat.id, campaign_details)
+        bot.send_message(update.message.chat.id, campaign_details, parse_mode="HTML")

@@ -201,6 +201,16 @@ def handleWalletInput(message, bot):
         {"$set": {"wallet": wallet_address}},
         upsert=True
     )
+    # check if user has setup all the required fields
+    if checkProfileComplete(user_id):
+        bot.send_message(user_id, "Wallet address updated successfully. Your profile is now complete. you get 10 points for completing your profile.")
+        DB['botUsers'].update_one(
+            {"user_id": user_id},
+            {"$inc": {"points": 10}}
+        )
+        return
+        
+
     bot.send_message(user_id, "Wallet address updated successfully.")
 
 
@@ -244,6 +254,13 @@ def handleEmailInput(message, bot):
         {"$set": {"email": email}},
         upsert=True
     )
+    if checkProfileComplete(user_id):
+        bot.send_message(user_id, "Email updated successfully. Your profile is now complete. you get 10 points for completing your profile.")
+        DB['botUsers'].update_one(
+            {"user_id": user_id},
+            {"$inc": {"points": 10}}
+        )
+        return
     bot.send_message(user_id, "Email address updated successfully.")
 
 def viewEmail(message, bot):
@@ -284,6 +301,13 @@ def handleTwitterInput(message, bot):
         {"$set": {"twitter": twitter}},
         upsert=True
     )
+    if checkProfileComplete(user_id):
+        bot.send_message(user_id, "Twitter updated successfully. Your profile is now complete. you get 10 points for completing your profile.")
+        DB['botUsers'].update_one(
+            {"user_id": user_id},
+            {"$inc": {"points": 10}}
+        )
+        return
     bot.send_message(user_id, "Twitter username updated successfully.")
 
 def viewTwitter(message, bot):
@@ -299,3 +323,13 @@ def viewTwitter(message, bot):
         bot.send_message(user_id, "You have not set a twitter link yet.")
 
         
+
+def checkProfileComplete(user_id):
+    user = DB['botUsers'].find_one({"user_id": user_id})
+    if "wallet" in user and "email" in user and "twitter" in user:
+        DB['botUsers'].update_one(
+            {"user_id": user_id},
+            {"$set": {"profile_complete": True}}
+        )
+        return True
+    return False

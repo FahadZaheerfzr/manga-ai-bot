@@ -58,9 +58,11 @@ def start(message, bot):
             DB['botUsers'].update_one({"user_id": user_id}, {"$push": {"campaigns": ObjectId(campaign_id)}})
 
             bot.send_message(message.from_user.id, startFormat() + "\nYou have claimed 5 points from the referral.", parse_mode="HTML", disable_web_page_preview=True)
+            bot.send_message(user_id, f"User {message.from_user.username} has claimed your referral you get 5 points!", parse_mode="HTML", disable_web_page_preview=True)
             return
         else:
             organizeCampaign(message, bot)
+            return
 
 
     bot.send_message(message.from_user.id, startFormat(), parse_mode="HTML", disable_web_page_preview=True)

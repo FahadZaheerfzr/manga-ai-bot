@@ -70,6 +70,14 @@ Here are the available commands and their descriptions:
 - Use the /leaderboard command to see the top 5 users with the highest points in the current group.
 - This command only works inside a group where the point system is enabled.
 
+6. <b>Earning Points through user referrals</b>
+- Use the /user_referral command to get your referral link.
+- Share your referral link with others to earn points when they register.
+
+7. <b>Earning Points through project referrals</b>
+- Use the /project_referral command to get your project referral link.
+- Share your project referral link with others to earn points when they register their project with their community.
+
 <i>Tips and Best Practices:</i>
 - Be specific with your image prompts for better results.
 - Engage with your community and earn points by participating and contributing.

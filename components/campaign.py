@@ -43,7 +43,8 @@ def organizeCampaign(update, bot):
         return
     markup = types.InlineKeyboardMarkup()
     for idx in range(1, len(communities) + 1):
-        print(str(referrer_id), "referrer_id")  
+        print(str(referrer_id), "referrer_id") 
+        print(str(communities[idx - 1]), "communities[idx - 1]") 
         markup.add(types.InlineKeyboardButton(str(communities[idx - 1]), callback_data="handleSelectedOrganize|" + str(communities[idx - 1] + "|" + str(referrer_id))))
 
     markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedOrganize_cancel"))

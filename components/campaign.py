@@ -262,7 +262,12 @@ def handleSelectedJoin(update: types.CallbackQuery, bot):
         bot.reply_to(update.message, "You are already in this campaign.")
         return
     DB['campaigns'].update_one({"_id": campaign_object_id}, {"$push": {"participants": user_id}})
-    DB['botUsers'].update_one({"user_id": user_id}, {"$push": {"campaigns": campaign_object_id}})
+    # check if user is in botUsers if not insert
+    user = DB['botUsers'].find_one({"user_id": user_id})
+    if not user:
+        DB['botUsers'].insert_one({ "user_id": user_id, "campaigns": [campaign_object_id],"username": update.from_user.username,"wallet":None })
+    else:
+        DB['botUsers'].update_one({"user_id": user_id}, {"$push": {"campaigns": campaign_object_id}})
     bot.reply_to(update.message, "You have successfully joined the campaign.")
 
 def handleSelectedJoin_cancel(update: types.CallbackQuery, bot):

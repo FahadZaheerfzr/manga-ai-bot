@@ -27,7 +27,7 @@ def settings(update, bot):
     else:
         return
 
-    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedCommunity_cancel"))
+    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedCommunity|cancel"))
     print(message.from_user.id, "message.from_user.id")
     bot.send_message(send_id, settingFormatCommunity(), reply_markup=markup, parse_mode="HTML")
 
@@ -35,9 +35,13 @@ def settings(update, bot):
 def handleSelectedCommunity(message: types.CallbackQuery,bot):
     # delete last bot message 
     bot.delete_message(message.from_user.id, message.message.message_id)
+
     data = message.data.split("|")
     print(data)
     selected_data = data[1]
+    if selected_data == 'cancel':
+        bot.send_message(message.from_user.id, "Action canceled.")
+        return
     if '(' in selected_data and ')' in selected_data:
         # Extract the chat ID from within the parentheses
         chat_id = selected_data.split('(')[-1].split(')')[0]

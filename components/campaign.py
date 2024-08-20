@@ -169,6 +169,22 @@ def handleCampaignImage(message, community_id, campaign_name, campaign_descripti
         bot.send_message(message.chat.id, "Please provide your email address for the admin panel.")
         bot.register_next_step_handler(message, handleCampaignEmail, community_id, bot)
 
+    campaign_details = f"""
+    <b>🎉 New Campaign Initiated! 🎉</b>
+
+    <b>Name:</b> {campaign_name}
+    <b>Description:</b> {campaign_description}
+    <b>End Date:</b> {end_date.strftime('%d %b %Y')}
+    """
+
+    # Send the formatted message with the image to the community
+    bot.send_photo(
+            community_id, 
+            photo=image_path, 
+            caption=campaign_details, 
+            parse_mode='HTML'
+        )
+
 
 def handleCampaignEmail(message, community_id, bot):
     email = message.text

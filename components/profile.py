@@ -73,9 +73,9 @@ def profile(message, bot):
     try:
         user_groups = get_user_groups(bot, message.from_user.id)
 
-        if len(user_groups) == 0:
-            bot.reply_to(message, "You are not a member of any community.")
-            return
+        # if len(user_groups) == 0:
+        #     bot.reply_to(message, "You are not a member of any community.")
+        #     return
         
         # get botUsers
         botUsers = DB['botUsers'].find_one({"user_id": message.from_user.id})
@@ -87,8 +87,9 @@ def profile(message, bot):
             })
         
         keyboard = types.InlineKeyboardMarkup()
-        for group in user_groups:
-            keyboard.add(types.InlineKeyboardButton(group['name'], callback_data="handleSelectedGroup|" + str(group['_id'])))
+        if len(user_groups) >0:
+            for group in user_groups:
+                keyboard.add(types.InlineKeyboardButton(group['name'], callback_data="handleSelectedGroup|" + str(group['_id'])))
 
         if botUsers['wallet']:
             keyboard.add(types.InlineKeyboardButton("Update Wallet 💳", callback_data="setWallet_"))
@@ -122,7 +123,7 @@ def profile(message, bot):
 
 def handleCancel (message, bot):
     try:
-        bot.delete_message(message.chat.id, message.message_id)
+        bot.delete_message(message.message.chat.id, message.message.message_id)
     except Exception as e:
         print(e)
     bot.send_message(message.from_user.id, "Cancelled")

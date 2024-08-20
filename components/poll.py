@@ -24,59 +24,62 @@ def create_poll(update, bot):
     """
     Create a poll with all images of the currently active campaign.
     """
-    if isinstance(update, types.Message):
-        message = update
-        chat_id = message.chat.id
-        user_id = message.from_user.id
-    elif isinstance(update, types.CallbackQuery):
-        message = update.message
-        chat_id = message.chat.id
-        user_id = update.from_user.id
+    try:
+        if isinstance(update, types.Message):
+            message = update
+            chat_id = message.chat.id
+            user_id = message.from_user.id
+        elif isinstance(update, types.CallbackQuery):
+            message = update.message
+            chat_id = message.chat.id
+            user_id = update.from_user.id
 
-    # can only be used in group
-    if message.chat.type == 'private':
-        bot.reply_to(message, "This command can only be used in a group.")
-        return
+        # can only be used in group
+        if message.chat.type == 'private':
+            bot.reply_to(message, "This command can only be used in a group.")
+            return
 
-    # get the active campaign
-    active_campaign = get_active_campaign(chat_id)
-    if not active_campaign:
-        bot.reply_to(message, "No active campaign found in this community.")
-        return
-    if not checkIfAdmin(bot, chat_id, user_id):
-        bot.reply_to(message, "You must be an admin to create a poll.")
-        return
-    # if poll already exists, do not create a new one
-    poll_data = DB['polls'].find_one({"campaign_id": active_campaign["_id"], "community_id": chat_id})
-    if poll_data:
-        bot.reply_to(message, "A poll is already active for this campaign.")
-        return
-    
-    images = DB['images'].find({
-        "campaign_id": str(active_campaign["_id"]),
-        "$or": [
-            {"disqualified": {"$exists": False}},
-            {"disqualified": False}
-        ]
-    })
-            
-    
-    # create the poll
-    poll = bot.send_poll(chat_id, "Cast your vote for the images", [image["id"] for image in images], is_anonymous=False, allows_multiple_answers=False)
-    # save the poll ID in the database
-    images = list(DB['images'].find({"campaign_id": str(active_campaign["_id"])}))
-    if not images:
-        bot.reply_to(message, "No images found for this campaign.")
-        return
-    if len(images) < 2:
-        bot.reply_to(message, "At least 2 images are required to create a poll.")
-        return
-    pollOptions = []
-    for image in images:
-        print (image["id"])
-        pollOptions.append({"id": image["id"]} )
-    DB['polls'].insert_one({"_id": poll.poll.id, "campaign_id": active_campaign["_id"], "user_id": user_id, "community_id": chat_id,"poll_message_id": poll.message_id, "poll_options": pollOptions})
-
+        # get the active campaign
+        active_campaign = get_active_campaign(chat_id)
+        if not active_campaign:
+            bot.reply_to(message, "No active campaign found in this community.")
+            return
+        if not checkIfAdmin(bot, chat_id, user_id):
+            bot.reply_to(message, "You must be an admin to create a poll.")
+            return
+        # if poll already exists, do not create a new one
+        poll_data = DB['polls'].find_one({"campaign_id": active_campaign["_id"], "community_id": chat_id})
+        if poll_data:
+            bot.reply_to(message, "A poll is already active for this campaign.")
+            return
+        
+        images = DB['images'].find({
+            "campaign_id": str(active_campaign["_id"]),
+            "$or": [
+                {"disqualified": {"$exists": False}},
+                {"disqualified": False}
+            ]
+        })
+                
+        
+        # create the poll
+        poll = bot.send_poll(chat_id, "Cast your vote for the images", [image["id"] for image in images], is_anonymous=False, allows_multiple_answers=False)
+        # save the poll ID in the database
+        images = list(DB['images'].find({"campaign_id": str(active_campaign["_id"])}))
+        if not images:
+            bot.reply_to(message, "No images found for this campaign.")
+            return
+        if len(images) < 2:
+            bot.reply_to(message, "At least 2 images are required to create a poll.")
+            return
+        pollOptions = []
+        for image in images:
+            print (image["id"])
+            pollOptions.append({"id": image["id"]} )
+        DB['polls'].insert_one({"_id": poll.poll.id, "campaign_id": active_campaign["_id"], "user_id": user_id, "community_id": chat_id,"poll_message_id": poll.message_id, "poll_options": pollOptions})
+    except Exception as e:
+        print(e)
+        bot.reply_to(message, "Make sure there are atleast two images in the campaign to create a poll.")
 
 from datetime import datetime, timedelta
 

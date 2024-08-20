@@ -131,7 +131,6 @@ def get_user_points(user_id,sendAll=False):
     rewardPoints=0
     if user:
         user_points = user.get("points", 0)
-        rewardPoints = user_points
     # check images
     image_points = 0
     images = DB['images'].find({
@@ -168,6 +167,12 @@ def get_user_points(user_id,sendAll=False):
     for referral in project_referrals:
         user_points += referral['points']
         project_referralPoints += referral['points']
+
+    # check daily_rewards
+    daily_reward = DB['daily_rewards'].find_one({"user_id": user_id})
+    if daily_reward:
+        user_points += daily_reward['points']
+        rewardPoints=daily_reward['points']
 
     if sendAll:
         return user_points, image_points, referral_points, project_referralPoints, rewardPoints

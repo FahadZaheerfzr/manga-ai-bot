@@ -5,7 +5,7 @@ from components.start import start  # import the start function from the start.p
 from components.generate import generate, generate_image, generateDefault  # import the generate function from the generate.py file
 from components.register import register  # import the register function from the register.py file
 from components.database import DB
-from components.profile import (profile, handleSelectedGroup, handle_points_command, setWallet, viewWallet, setEmail,setTwitter,viewEmail,viewTwitter)
+from components.profile import (profile, handleSelectedGroup, handle_points_command, setWallet, viewWallet, setEmail,setTwitter,viewEmail,viewTwitter,handleCancel)
 from components.join_group import join_group
 from components.settings import (settings, handleSelectedCommunity, removeCommunity, cancel, enableNotif, disableNotif, notifSettings, defaultImage, setDefaultImageNormal, setDefaultImageAnime)
 from components.vote import vote, handle_vote_reply_message
@@ -76,6 +76,7 @@ mint_bot.register_callback_query_handler(setTwitter, pass_bot=True, func=lambda 
 mint_bot.register_callback_query_handler(viewEmail, pass_bot=True, func=lambda call: call.data.startswith('viewEmail_'))
 mint_bot.register_callback_query_handler(viewTwitter, pass_bot=True, func=lambda call: call.data.startswith('viewTwitter_'))
 mint_bot.register_callback_query_handler(handleSelectedCampaignDetails, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedCampaignDetails|'))
+mint_bot.register_callback_query_handler(handleCancel, pass_bot=True, func=lambda call: call.data.startswith('cancel_'))
 
 
 me = mint_bot.get_me()  # Get the bot information

@@ -45,17 +45,21 @@ def organizeCampaign(update, bot):
     for idx in range(1, len(communities) + 1):
         markup.add(types.InlineKeyboardButton(str(communities[idx - 1]), callback_data="handleSelectedOrganize|" + str(communities[idx - 1] + "|" + str(referrer_id))))
 
-    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedOrganize_cancel"))
+    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedOrganize|cancel"))
     print(message.from_user.id, "message.from_user.id")
     bot.send_message(send_id, settingFormatCommunity(), reply_markup=markup, parse_mode="HTML")
 
 
 def handleSelectedOrganize(update: types.CallbackQuery, bot):
     data = update.data.split("|")
+    if data[1] == "cancel":
+        bot.delete_message(update.message.chat.id, update.message.message_id)
+        bot.send_message(update.message.chat.id, "Cancelled.")
+        return
     community_id = int(data[1].split("(")[1].split(")")[0])
     referrer_id = int(data[2])
     user_id = update.from_user.id
-
+    
     community = DB['group'].find_one({"_id": community_id})
     if not community:
         bot.reply_to(update.message, "Community not found.")
@@ -76,18 +80,26 @@ def handleSelectedOrganize(update: types.CallbackQuery, bot):
 
 def handleCampaignName(message, community_id, bot, referrer_id):
     campaign_name = message.text
+    if message.text == "cancel":
+        bot.send_message(message.chat.id, "Cancelled.")
+        return
     bot.send_message(message.chat.id, "Please enter the description for the campaign.")
     bot.register_next_step_handler(message, handleCampaignDescription, community_id, campaign_name, bot, referrer_id)
 
 
 def handleCampaignDescription(message, community_id, campaign_name, bot, referrer_id):
     campaign_description = message.text
+    if message.text == "cancel":
+        bot.send_message(message.chat.id, "Cancelled.")
+        return
     bot.send_message(message.chat.id, "Please enter the end date for the campaign in the format YYYY-MM-DD.")
     bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot, referrer_id)
     
 
 
 def handleCampaignEndDate(message, community_id, campaign_name, campaign_description, bot, referrer_id):
+    if message.text == "cancel":
+        bot.send_message(message.chat.id, "Cancelled.")
     try:
         end_date = datetime.strptime(message.text, "%Y-%m-%d").date()
     except ValueError:
@@ -105,6 +117,9 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
 
 
 def handleCampaignImage(message, community_id, campaign_name, campaign_description, end_date, bot, referrer_id):
+    if message.text == "cancel":
+        bot.send_message(message.chat.id, "Cancelled.")
+        return
     if not message.photo:
         bot.reply_to(message, "Please upload a valid image.")
         bot.register_next_step_handler(message, handleCampaignImage, community_id, campaign_name, campaign_description, end_date, bot, referrer_id)
@@ -212,7 +227,7 @@ def joinCampaign(update, bot):
     for idx in range(1, len(campaigns) + 1):
         markup.add(types.InlineKeyboardButton(campaigns[idx - 1]["name"], callback_data="handleSelectedJoin|" + str(campaigns[idx - 1]["_id"])))
 
-    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedJoin_cancel"))
+    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedJoin|cancel"))
 
     bot.send_message(send_id, "Select a campaign to join.", reply_markup=markup)
 
@@ -220,6 +235,9 @@ def joinCampaign(update, bot):
 def handleSelectedJoin(update: types.CallbackQuery, bot):
     campaign_id = update.data.split("|")[1]
     user_id = update.from_user.id
+    if campaign_id == "cancel":
+        handleSelectedJoin_cancel(update, bot)
+        return
 
     try:
         campaign_object_id = ObjectId(campaign_id)
@@ -274,13 +292,18 @@ def campaign_details(update, bot):
     for idx in range(1, len(campaigns) + 1):
         markup.add(types.InlineKeyboardButton(campaigns[idx - 1]["name"], callback_data="handleSelectedCampaignDetails|" + str(campaigns[idx - 1]["_id"])))
 
-    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedCampaignDetails_cancel"))
+    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedCampaignDetails|cancel"))
 
     bot.send_message(send_id, "Select a campaign to view details.", reply_markup=markup)
 
 def handleSelectedCampaignDetails(update: types.CallbackQuery, bot):
     campaign_id = update.data.split("|")[1]
     user_id = update.from_user.id
+
+    if campaign_id == "cancel":
+        bot.delete_message(update.message.chat.id, update.message.message_id)
+        bot.send_message(update.message.chat.id, "Cancelled.")
+        return
 
     try:
         campaign_object_id = ObjectId(campaign_id)

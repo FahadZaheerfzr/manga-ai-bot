@@ -111,6 +111,7 @@ def profile(message, bot):
         except:
             keyboard.add(types.InlineKeyboardButton("Set Twitter 🐦", callback_data="setTwitter_"))
 
+        keyboard.add(types.InlineKeyboardButton("Cancel", callback_data="cancel_"))
             
 
         
@@ -118,6 +119,13 @@ def profile(message, bot):
     except Exception as e:
         print(e)
         bot.reply_to(message, "An error occurred. Please try again later.")
+
+def handleCancel (message, bot):
+    try:
+        bot.delete_message(message.chat.id, message.message_id)
+    except Exception as e:
+        print(e)
+    bot.send_message(message.from_user.id, "Cancelled")
 
 def handleSelectedGroup(message: types.CallbackQuery, bot):
     """
@@ -187,6 +195,9 @@ def handleWalletInput(message, bot):
     """
     Handles the input of the wallet address and updates the database.
     """
+    if message.text == "cancel":
+        bot.send_message(message.from_user.id, "Cancelled")
+        return
     print("abcd",message.from_user.id)
     user_id = message.from_user.id
     wallet_address = message.text
@@ -218,6 +229,9 @@ def viewWallet(message, bot):
         """
         Handles the viewing of the wallet address for the user.
         """
+        if message.text == "cancel":
+            bot.send_message(message.from_user.id, "Cancelled")
+            return
         user_id = message.from_user.id
         botUsers = DB['botUsers'].find_one({"user_id": user_id})
         wallet_address = botUsers['wallet']
@@ -243,6 +257,9 @@ def handleEmailInput(message, bot):
     """
     user_id = message.from_user.id
     email = message.text
+    if message.text == "cancel":
+        bot.send_message(message.from_user.id, "Cancelled")
+        return
 
     if not "@" in email or not "." in email:
         bot.send_message(user_id, "Invalid email address. Please try again.")
@@ -289,6 +306,9 @@ def handleTwitterInput(message, bot):
     """
     Handles the input of the twitter username and updates the database.
     """
+    if message.text == "cancel":
+        bot.send_message(message.from_user.id, "Cancelled")
+        return
     user_id = message.from_user.id
     twitter = message.text
     if not re.match(r'^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+$', twitter):

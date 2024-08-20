@@ -2,6 +2,7 @@ from telebot import types
 from components.database import DB
 from datetime import datetime, timedelta
 from utils.functions import getGroups,checkIfAdmin
+from utils.decorators import cancelable
 from components.settings import settingFormatCommunity
 from passlib.context import CryptContext
 from uuid import uuid4
@@ -51,10 +52,9 @@ def organizeCampaign(update, bot):
     print(message.from_user.id, "message.from_user.id")
     bot.send_message(send_id, settingFormatCommunity(), reply_markup=markup, parse_mode="HTML")
 
-
 def handleSelectedOrganize(update: types.CallbackQuery, bot):
     data = update.data.split("|")
-    if data[1] == "cancel":
+    if data[1] == "cancel" or data[1] == "/cancel":
         bot.delete_message(update.message.chat.id, update.message.message_id)
         bot.send_message(update.message.chat.id, "Cancelled.")
         return
@@ -80,28 +80,21 @@ def handleSelectedOrganize(update: types.CallbackQuery, bot):
     bot.register_next_step_handler(update.message, handleCampaignName, community_id, bot, referrer_id)
 
 
+@cancelable
 def handleCampaignName(message, community_id, bot, referrer_id):
     campaign_name = message.text
-    if message.text == "cancel":
-        bot.send_message(message.chat.id, "Cancelled.")
-        return
     bot.send_message(message.chat.id, "Please enter the description for the campaign.")
     bot.register_next_step_handler(message, handleCampaignDescription, community_id, campaign_name, bot, referrer_id)
 
-
-def handleCampaignDescription(message, community_id, campaign_name, bot, referrer_id):
+@cancelable
+def handleCampaignDescription(message, community_id,bot, campaign_name, referrer_id):
     campaign_description = message.text
-    if message.text == "cancel":
-        bot.send_message(message.chat.id, "Cancelled.")
-        return
     bot.send_message(message.chat.id, "Please enter the end date for the campaign in the format YYYY-MM-DD.")
     bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot, referrer_id)
     
 
-
+@cancelable
 def handleCampaignEndDate(message, community_id, campaign_name, campaign_description, bot, referrer_id):
-    if message.text == "cancel":
-        bot.send_message(message.chat.id, "Cancelled.")
     try:
         end_date = datetime.strptime(message.text, "%Y-%m-%d").date()
     except ValueError:
@@ -117,11 +110,8 @@ def handleCampaignEndDate(message, community_id, campaign_name, campaign_descrip
     bot.send_message(message.chat.id, "Please upload an image for the campaign.")
     bot.register_next_step_handler(message, handleCampaignImage, community_id, campaign_name, campaign_description, end_date, bot, referrer_id)
 
-
+@cancelable
 def handleCampaignImage(message, community_id, campaign_name, campaign_description, end_date, bot, referrer_id):
-    if message.text == "cancel":
-        bot.send_message(message.chat.id, "Cancelled.")
-        return
     if not message.photo:
         bot.reply_to(message, "Please upload a valid image.")
         bot.register_next_step_handler(message, handleCampaignImage, community_id, campaign_name, campaign_description, end_date, bot, referrer_id)

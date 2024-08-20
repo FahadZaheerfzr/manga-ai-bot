@@ -2,6 +2,7 @@ from telebot import types
 from components.database import DB
 from web3 import Web3
 from components.poll import get_user_points
+from utils.decorators import cancelable
 import re
 
 def get_user_groups(bot, user_id):
@@ -192,13 +193,11 @@ def setWallet(message: types.CallbackQuery, bot):
     bot.send_message(user_id, "Please enter your wallet address.")
     bot.register_next_step_handler(message.message, handleWalletInput,bot)
 
+@cancelable
 def handleWalletInput(message, bot):
     """
     Handles the input of the wallet address and updates the database.
     """
-    if message.text == "cancel":
-        bot.send_message(message.from_user.id, "Cancelled")
-        return
     print("abcd",message.from_user.id)
     user_id = message.from_user.id
     wallet_address = message.text
@@ -230,9 +229,6 @@ def viewWallet(message, bot):
         """
         Handles the viewing of the wallet address for the user.
         """
-        if message.text == "cancel":
-            bot.send_message(message.from_user.id, "Cancelled")
-            return
         user_id = message.from_user.id
         botUsers = DB['botUsers'].find_one({"user_id": user_id})
         wallet_address = botUsers['wallet']
@@ -252,15 +248,14 @@ def setEmail(message: types.CallbackQuery, bot):
     bot.send_message(user_id, "Please enter your email address.")
     bot.register_next_step_handler(message.message, handleEmailInput,bot)
 
+
+@cancelable
 def handleEmailInput(message, bot):
     """
     Handles the input of the email address and updates the database.
     """
     user_id = message.from_user.id
     email = message.text
-    if message.text == "cancel":
-        bot.send_message(message.from_user.id, "Cancelled")
-        return
 
     if not "@" in email or not "." in email:
         bot.send_message(user_id, "Invalid email address. Please try again.")
@@ -303,13 +298,11 @@ def setTwitter(message: types.CallbackQuery, bot):
     bot.send_message(user_id, "Please enter your twitter link.")
     bot.register_next_step_handler(message.message, handleTwitterInput,bot)
 
+@cancelable
 def handleTwitterInput(message, bot):
     """
     Handles the input of the twitter username and updates the database.
     """
-    if message.text == "cancel":
-        bot.send_message(message.from_user.id, "Cancelled")
-        return
     user_id = message.from_user.id
     twitter = message.text
     if not re.match(r'^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+$', twitter):

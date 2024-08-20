@@ -22,3 +22,19 @@ def admin_only(bot):
                 return
         return wrapper
     return decorator
+
+def cancelable(func):
+    @wraps(func)
+    def wrapper(message, *args, **kwargs):
+        # Try to extract bot from kwargs first
+        bot = kwargs.get('bot')
+        
+        if not bot:
+            bot = next((arg for arg in args if hasattr(arg, 'send_message')), None)
+
+        if message.text.lower() == "cancel" or message.text.lower() == "/cancel":
+            if bot:  # Ensure bot is not None
+                bot.send_message(message.chat.id, "Cancelled.")
+            return
+        return func(message, *args, **kwargs)
+    return wrapper

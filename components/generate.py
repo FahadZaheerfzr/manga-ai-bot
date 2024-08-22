@@ -8,7 +8,9 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 from components.database import DB
 from utils.logger import setup_logger
 from components.poll import get_active_campaign
+from utils.decorators import profile_complete
 
+@profile_complete
 def generate(message,bot):
     """
     This function responds to the /generate command
@@ -93,18 +95,22 @@ def generate(message,bot):
             }
             response = requests.post(BACKEND_URL+"/images", params=params, files=files)
         image = Image.open(image_file_path)
-        watermark = Image.open("image/watermark.png")
-        image.paste(watermark, (0, 0), watermark)
+        # watermark = Image.open("image/watermark.png")
+        # image.paste(watermark, (0, 0), watermark)
         image_draw = ImageDraw.Draw(image)
 
         font_path = "Montserrat.ttf"  
-        font_size = 64  
+        font_size = 32  
         font = ImageFont.truetype(font_path, font_size)
 
         text_position = (image.width - 300, image.height - 100) 
         text_color = (255, 255, 255, 255) 
 
         image_draw.text(text_position, username, font=font, fill=text_color)
+
+        text_position = (image.width - 200, 50)
+        font_size = 64
+        image_draw.text(text_position, "Manga Ai", font=font, fill=text_color)
 
         image.save(image_file_path)
         ads_string = """"""
@@ -165,6 +171,7 @@ Sponsored Ad: {sponsored_ads}\n
         bot.reply_to(message, "An error occurred while generating the image. Please try again.")
         return
     
+@profile_complete
 def generate_image(message,bot):
     """
     This function responds to the /generate command
@@ -250,18 +257,22 @@ def generate_image(message,bot):
             response = requests.post(BACKEND_URL+"/images", params=params, files=files)
             print(response.json())
         image = Image.open(image_file_path)
-        watermark = Image.open("image/watermark.png")
-        image.paste(watermark, (0, 0), watermark)
+        # watermark = Image.open("image/watermark.png")
+        # image.paste(watermark, (0, 0), watermark)
         image_draw = ImageDraw.Draw(image)
 
         font_path = "Montserrat.ttf"  
-        font_size = 64  
+        font_size = 32  
         font = ImageFont.truetype(font_path, font_size)
 
         text_position = (image.width - 300, image.height - 100) 
-        text_color = (255, 255, 255, 255)  
+        text_color = (255, 255, 255, 255) 
 
         image_draw.text(text_position, username, font=font, fill=text_color)
+
+        text_position = (image.width - 200, 50)
+        font_size = 64
+        image_draw.text(text_position, "Manga Ai", font=font, fill=text_color)
 
         image.save(image_file_path)
         
@@ -327,7 +338,7 @@ Sponsored Ad: {sponsored_ads}\n
         bot.reply_to(message, "An error occurred while generating the image. Please try again.")
         return
 
-
+@profile_complete
 def generateDefault(message,bot):
     """
     This function responds to the /generate command
@@ -421,8 +432,8 @@ def generateDefault(message,bot):
             }
             response = requests.post(BACKEND_URL+"/images", params=params, files=files)
         image = Image.open(image_file_path)
-        watermark = Image.open("image/watermark.png")
-        image.paste(watermark, (0, 0), watermark)
+        # watermark = Image.open("image/watermark.png")
+        # image.paste(watermark, (0, 0), watermark)
         image_draw = ImageDraw.Draw(image)
 
         font_path = "Montserrat.ttf"  
@@ -433,6 +444,11 @@ def generateDefault(message,bot):
         text_color = (255, 255, 255, 255) 
 
         image_draw.text(text_position, username, font=font, fill=text_color)
+
+        text_position = (image.width - 200, 50)
+        font_size = 64
+        image_draw.text(text_position, "Manga Ai", font=font, fill=text_color)
+        
 
         image.save(image_file_path)
         ads_string = """"""

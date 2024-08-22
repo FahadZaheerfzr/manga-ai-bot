@@ -1,12 +1,14 @@
 from telebot import types
-from components.database import DB
+from components.database import DB,ALL_POINTS
 from utils.functions import escape_markdown
+from components.poll import get_user_points
 
 def get_group_users_points(group_id):
     """
     Fetches and returns a dictionary of user IDs and their points for a specific group.
     """
     users_points = {}
+    print(group_id)
     images = DB['images'].find({
         "group_id": str(group_id),
         "$or": [
@@ -15,10 +17,20 @@ def get_group_users_points(group_id):
         ]
     })    
     for image in images:
+        print(image)
         user_id = image['user_id']
         if user_id not in users_points:
             users_points[user_id] = 0
-        users_points[user_id] += image['points']
+        if not ALL_POINTS:
+            users_points[user_id] += image['points']
+
+    if ALL_POINTS:
+        # loop thru user_points and add all points
+        for user_id in users_points:
+            user_points = get_user_points(user_id,False,group_id)
+            users_points[user_id] += user_points
+    
+
     
     return users_points
 

@@ -40,7 +40,7 @@ def organizeCampaign(update, bot):
         
 
     if not communities:
-        bot.send_message(send_id, "You have not setup the bot in any communities.")
+        bot.send_message(send_id, "Only Admins or Owners can organize campaigns.")
         return
     markup = types.InlineKeyboardMarkup()
     for idx in range(1, len(communities) + 1):
@@ -73,7 +73,7 @@ def handleSelectedOrganize(update: types.CallbackQuery, bot):
         return
     active_campaign = get_active_campaign(community_id)
     if active_campaign:
-        bot.reply_to(update.message, "There is already an active campaign in this community.")
+        bot.reply_to(update.message, "The Admin cannot create more than one active campaigns at a time")
         return
 
     bot.send_message(user_id, "Please enter the name for the campaign.")
@@ -84,10 +84,11 @@ def handleSelectedOrganize(update: types.CallbackQuery, bot):
 def handleCampaignName(message, community_id, bot, referrer_id):
     campaign_name = message.text
     bot.send_message(message.chat.id, "Please enter the description for the campaign.")
-    bot.register_next_step_handler(message, handleCampaignDescription, community_id, campaign_name, bot, referrer_id)
+    bot.register_next_step_handler(message, handleCampaignDescription, community_id,bot, campaign_name, referrer_id)
 
 @cancelable
 def handleCampaignDescription(message, community_id,bot, campaign_name, referrer_id):
+    print(community_id,bot, campaign_name, referrer_id)
     campaign_description = message.text
     bot.send_message(message.chat.id, "Please enter the end date for the campaign in the format YYYY-MM-DD.")
     bot.register_next_step_handler(message, handleCampaignEndDate, community_id, campaign_name, campaign_description, bot, referrer_id)
@@ -207,6 +208,7 @@ def create_new_user(message, email, bot):
 
 
 def handleConfirm(update, bot):
+    print("confirmed")
     bot.delete_message(update.message.chat.id, update.message.message_id)
 
 
@@ -225,10 +227,13 @@ def joinCampaign(update, bot):
 
     allCampaigns = DB['campaigns'].find()
     campaigns = []
+    ended = False
     for campaign in allCampaigns:
         if user_id not in campaign["participants"]:
             end_date = datetime.strptime(campaign["end_date"], "%Y-%m-%d").date()
-            if end_date > datetime.now().date():
+            if "ended" in campaign and campaign["ended"]:
+                ended = True
+            if not ended and end_date > datetime.now().date():
                 campaigns.append(campaign)
 
     markup = types.InlineKeyboardMarkup()
@@ -291,10 +296,13 @@ def campaign_details(update, bot):
     allCampaigns = DB['campaigns'].find()
     print(allCampaigns)
     campaigns = []
+    ended = False
     for campaign in allCampaigns:
-        if user_id in campaign["participants"]:
+        if user_id not in campaign["participants"]:
             end_date = datetime.strptime(campaign["end_date"], "%Y-%m-%d").date()
-            if end_date > datetime.now().date():
+            if "ended" in campaign and campaign["ended"]:
+                ended = True
+            if not ended and end_date > datetime.now().date():
                 campaigns.append(campaign)
 
     if not campaigns or len(campaigns) == 0:
@@ -346,3 +354,88 @@ def handleSelectedCampaignDetails(update: types.CallbackQuery, bot):
         bot.send_photo(update.message.chat.id, campaign["image"], caption=campaign_details, parse_mode="HTML")
     else:
         bot.send_message(update.message.chat.id, campaign_details, parse_mode="HTML")
+
+
+
+# end campaign manually for admins
+def endCampaign(update, bot):
+    if isinstance(update, types.Message):
+        message = update
+        chat_id = message.chat.id
+        user_id = message.from_user.id
+        send_id = user_id
+    elif isinstance(update, types.CallbackQuery):
+        message = update.message
+        chat_id = message.chat.id
+        user_id = update.from_user.id
+        send_id = chat_id
+
+    communities = getGroups(bot, update, message, user_id)
+
+    if not communities:
+        bot.send_message(send_id, "Only Admins or Owners can end campaigns.")
+        return
+
+    markup = types.InlineKeyboardMarkup()
+    for idx in range(1, len(communities) + 1):
+        markup.add(types.InlineKeyboardButton(communities[idx - 1], callback_data="handleSelectedEndCampaign|" + str(communities[idx - 1].split("(")[1])))
+
+    markup.add(types.InlineKeyboardButton("cancel", callback_data="handleSelectedEndCampaign|cancel"))
+
+    bot.send_message(send_id, "Select a community to end an active campaign.", reply_markup=markup)
+    
+
+def handleSelectedEndCampaign(update: types.CallbackQuery, bot):
+    community_id = update.data.split("|")[1]
+    community_id = community_id.split(")")[0]
+    user_id = update.from_user.id
+    print (community_id, "community_id")
+    if community_id == "cancel":
+        bot.delete_message(update.message.chat.id, update.message.message_id)
+        bot.send_message(update.message.chat.id, "Cancelled.")
+        return
+    print (community_id, "community_id")
+    community = DB['group'].find_one({"_id": int(community_id)})
+    if not community:
+        bot.reply_to(update.message, "Community not found.")
+        return
+
+    # Check if the user is the owner or admin
+    if not checkIfAdmin(bot, community_id, user_id):
+        bot.reply_to(update.message, "You must be an admin to end a campaign.")
+        return
+
+    active_campaign = get_active_campaign(community_id)
+    if not active_campaign:
+        bot.reply_to(update.message, "No active campaign found in this community.")
+        return
+    print(active_campaign["_id"], "active_campaign")
+#    display button with active campaign name and confirm ending
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("Confirm", callback_data="confirmend_campaign|" + str(active_campaign["_id"])))
+    markup.add(types.InlineKeyboardButton("Cancel", callback_data="handleSelectedEndCampaign|cancel"))
+
+    text = f"Are you sure you want to end the campaign: {active_campaign['name']}?"
+    # print (markup, "markup")
+    bot.send_message(update.message.chat.id, text, reply_markup=markup)
+
+
+def confirm_end_campaign(update: types.CallbackQuery, bot):
+    campaign_id = update.data.split("|")[1]
+    user_id = update.from_user.id
+    print("abc")
+    try:
+        campaign_object_id = ObjectId(campaign_id)
+    except Exception as e:
+        bot.reply_to(update.message, "Invalid campaign ID.")
+        return
+
+    campaign = DB['campaigns'].find_one({"_id": campaign_object_id})
+    if not campaign:
+        bot.reply_to(update.message, "Campaign not found.")
+        return
+
+    # Update the campaign to mark it as ended
+    DB['campaigns'].update_one({"_id": campaign_object_id}, {"$set": {"ended": True}})
+
+    bot.reply_to(update.message, "Campaign ended successfully.")

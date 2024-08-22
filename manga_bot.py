@@ -13,7 +13,7 @@ from components.help import help
 from components.leaderboard import handle_leaderboard_command
 from components.admin import disqualify
 from components.daily import daily_reward
-from components.campaign import (organizeCampaign, handleSelectedOrganize, handleConfirm, joinCampaign, handleSelectedJoin, handleSelectedJoin_cancel,campaign_details,handleSelectedCampaignDetails)
+from components.campaign import (organizeCampaign, handleSelectedOrganize, handleConfirm, joinCampaign, handleSelectedJoin, handleSelectedJoin_cancel,campaign_details,handleSelectedCampaignDetails,handleSelectedEndCampaign,endCampaign,confirm_end_campaign)
 from components.referral import user_referral, handleSelectedCampaign, projectReferralLink
 from components.poll import create_poll, handle_poll
 from datetime import datetime
@@ -42,6 +42,7 @@ mint_bot.register_message_handler(user_referral,pass_bot=True, commands=['user_r
 mint_bot.register_message_handler(projectReferralLink,pass_bot=True, commands=['project_referral'])
 mint_bot.register_message_handler(create_poll,pass_bot=True, commands=['vote'])
 mint_bot.register_message_handler(campaign_details,pass_bot=True, commands=['campaign_details'])
+mint_bot.register_message_handler(endCampaign,pass_bot=True, commands=['terminate_campaign'])
 
 # Register the handler for poll answers
 @mint_bot.poll_answer_handler()
@@ -77,7 +78,8 @@ mint_bot.register_callback_query_handler(viewEmail, pass_bot=True, func=lambda c
 mint_bot.register_callback_query_handler(viewTwitter, pass_bot=True, func=lambda call: call.data.startswith('viewTwitter_'))
 mint_bot.register_callback_query_handler(handleSelectedCampaignDetails, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedCampaignDetails|'))
 mint_bot.register_callback_query_handler(handleCancel, pass_bot=True, func=lambda call: call.data.startswith('cancel_'))
-
+mint_bot.register_callback_query_handler(handleSelectedEndCampaign, pass_bot=True, func=lambda call: call.data.startswith('handleSelectedEndCampaign|'))
+mint_bot.register_callback_query_handler(confirm_end_campaign, pass_bot=True, func=lambda call: call.data.startswith('confirmend_campaign|'))
 
 me = mint_bot.get_me()  # Get the bot information
 print(me.username)  # Print the bot username
@@ -91,7 +93,7 @@ commands = [
     types.BotCommand(command='/settings', description='Update settings'),
     types.BotCommand(command='/profile', description='View your profile'),
     types.BotCommand(command='/help', description='Get help with commands'),
-    types.BotCommand(command='/leaderboard', description='Show the top 5 users with the highest points in this group'),
+    types.BotCommand(command='/leaderboard', description='Show the top users with the highest points in this group'),
     types.BotCommand(command='/points', description='Show your points'),
     types.BotCommand(command='/disqualify', description='Disqualify a user from the daily reward'),
     types.BotCommand(command='/daily', description='Claim the daily reward'),
@@ -112,6 +114,11 @@ def check_campaign_end():
         for campaign in campaigns:
             end_date = datetime.strptime(campaign['end_date'], "%Y-%m-%d")
             if end_date < datetime.now():
+                # set ended true
+                DB['campaigns'].update_one(
+                    {"_id": campaign['_id']},
+                    {"$set": {"ended": True}}
+                )
                 for participant in campaign['participants']:
                     images = list(DB['images'].find({"campaign_id": campaign['_id'], "user_id": participant}))
                     if not images:

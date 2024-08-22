@@ -13,10 +13,11 @@ def get_active_campaign(community_id):
     Returns:
         dict: The active campaign document if found, otherwise None.
     """
-    campaigns = DB['campaigns'].find({"community_id": community_id})
+    campaigns = DB['campaigns'].find({"community_id": int(community_id)})
     for campaign in campaigns:
+        ended = campaign.get("ended", False)
         end_date = datetime.strptime(campaign["end_date"], "%Y-%m-%d").date()
-        if end_date > datetime.now().date():
+        if end_date > datetime.now().date() and not ended:
             return campaign
     return None
 
@@ -122,24 +123,34 @@ def handle_poll(poll_answer, bot, required_points=100):
         DB['user_votes'].insert_one({"user_id": user_id, "poll_id": poll_id, "date": str(today)})
 
 
-def get_user_points(user_id,sendAll=False):
+def get_user_points(user_id,sendAll=False,group_id=None):
     # we need to check all images of user , referrals in user_referral, project_referral and also daily rewards
 
     print(user_id)
     user_points = 0
-    user = DB['botUsers'].find_one({"user_id": user_id})
+    user = DB['botUsers'].find_one({"user_id": int(user_id)})
     rewardPoints=0
     if user:
         user_points = user.get("points", 0)
     # check images
     image_points = 0
-    images = DB['images'].find({
-    "user_id": user_id,
-    "$or": [
-        {"disqualified": {"$exists": False}},
-        {"disqualified": False}
-    ]
-})
+    if group_id:
+        images = DB['images'].find({
+            "user_id": str(user_id),
+            "group_id": str(group_id),
+            "$or": [
+                {"disqualified": {"$exists": False}},
+                {"disqualified": False}
+            ]
+        })
+    else:
+        images = DB['images'].find({
+        "user_id": str(user_id),
+        "$or": [
+            {"disqualified": {"$exists": False}},
+            {"disqualified": False}
+        ]
+    })
     for image in images:
         user_points += image['points']
         image_points += image['points']
@@ -148,8 +159,8 @@ def get_user_points(user_id,sendAll=False):
     referral_points = 0
     user_referrals = DB['user_referrals'].find({
         "$or": [
-            {"user_id": user_id},
-            {"referral_id": user_id}
+            {"user_id": int(user_id)},
+            {"referral_id": int(user_id)}
         ]
     })
     for referral in user_referrals:
@@ -160,8 +171,8 @@ def get_user_points(user_id,sendAll=False):
     project_referralPoints = 0
     project_referrals = DB['project_referral'].find({
         "$or": [
-            {"referrer_id": user_id},
-            {"user_id": user_id}
+            {"referrer_id": int(user_id)},
+            {"user_id": int(user_id)}
         ]
     })
     for referral in project_referrals:
@@ -169,7 +180,7 @@ def get_user_points(user_id,sendAll=False):
         project_referralPoints += referral['points']
 
     # check daily_rewards
-    daily_reward = DB['daily_rewards'].find_one({"user_id": user_id})
+    daily_reward = DB['daily_rewards'].find_one({"user_id": int(user_id)})
     if daily_reward:
         user_points += daily_reward['points']
         rewardPoints=daily_reward['points']
